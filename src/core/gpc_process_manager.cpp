@@ -1,9 +1,11 @@
 #include "gpc_process_manager.h"
 
+//extern GPCSharedMemory g_GPCSharedMemory;
+
 namespace gpc {
 	GPCProcessManager::GPCProcessManager() {
 		std::cout << "Create GPC process manager: " << utils::GetProcessName() << std::endl;
-		m_blackListFile = fs::current_path() / "blacklist.txt";
+		m_blackListFile = g_GPCSharedMemory.blacklistPath;
 		LoadBlackList(m_blackListFile);
 	}
 
@@ -62,7 +64,7 @@ namespace gpc {
 	}
 
 	void GPCProcessManager::LoadBlackList(fs::path blacklistFile) {
-		std::cout << "Start to load process blacklist" << std::endl;
+		std::cout << "Start to load process blacklist: " << m_blackListFile.string() << std::endl;
 		if (fs::exists(blacklistFile))
 			m_blackListFile = blacklistFile;
 		if (fs::exists(m_blackListFile)) {

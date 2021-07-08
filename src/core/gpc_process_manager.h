@@ -1,5 +1,6 @@
 #pragma once
 #include "utils/gpc_utils.h"
+#include "core/gpc_shared.h"
 
 namespace gpc {
 	class GPCProcessManager {

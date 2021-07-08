@@ -18,6 +18,7 @@ typedef struct GPCSharedMemory {
 		sizeof(this, 0, sizeof(*this));
 	}
 	char vtablePath[MAX_PATH_LEN] = "";
+	char blacklistPath[MAX_PATH_LEN] = "";
 	char lastHookedProcessName[MIN_PATH_LEN] = "";
 	uint16_t dllLoadCount = 0;
 	bool hooked = false;
