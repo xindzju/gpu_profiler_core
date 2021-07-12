@@ -4,10 +4,6 @@
 
 //#define USE_MINHOOK
 #define USE_DETOUR
-#define HOOK_DX
-//#define HOOK_VK
-//#define HOOK_OGL
-//#define HOOK_CUDA
 
 namespace gpc {
 	enum GPC_HOOK_POS : uint8_t {
@@ -24,7 +20,7 @@ namespace gpc {
 		HOOK_API_TYPE_VK = 1 << 1, // 2 
 		HOOK_API_TYPE_OGL = 1 << 2, // 4
 		HOOK_API_TYPE_CUDA = 1 << 3, // 8
-		HOOK_API_TYPE_ALL = HOOK_API_TYPE_DX | HOOK_API_TYPE_VK | HOOK_API_TYPE_OGL | HOOK_API_TYPE_CUDA,
+		HOOK_API_TYPE_ALL = HOOK_API_TYPE_DX | HOOK_API_TYPE_VK | HOOK_API_TYPE_OGL | HOOK_API_TYPE_CUDA
 	};
 
 	struct GPCAPIHookInfo {

@@ -3,28 +3,20 @@
 #include "gpc_hook_utils.h"
 #include "gpc_hook_defines.h"
 
-#ifdef HOOK_DX
+//dx hook
 #include <d3d12.h>
 #include <dxgi.h>
 #include <dxgi1_3.h>
 #include "dx/dxgi_hook.h"
 #include "dx/d3d12_hook.h"
-#endif
-
-#ifdef HOOK_VK
-#includce "vk/vk_hook.h"
-#endif
-
-#ifdef HOOK_OGL
+//vk hook
+#include "vk/vk_hook.h"
+//ogl hook
 #include "ogl/ogl_hook.h"
-#endif
-
-#ifdef HOOK_CUDA
+//cuda hook
 #include "cuda/cuda_hook.h"
-#endif
-
-
-//hook overhead is important
+//sys hook
+#include "sys/sys_hook.h"
 
 namespace gpc {
 	class GPCHookManager : public GPCSingleton<GPCHookManager>{
@@ -47,6 +39,7 @@ namespace gpc {
 		bool HookCUDA(const char* dllName = "");
 		bool HookVK(const char* dllName = "");
 		bool HookOGL(const char* dllName = "");
+		bool HookSys();
 
 	private:
 		void LoadAPIHookInfos(fs::path csvPath);

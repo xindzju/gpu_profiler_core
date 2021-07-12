@@ -43,6 +43,15 @@ namespace gpc {
 
         std::unique_ptr<GPCProcessManager> m_processManager; 
         std::unique_ptr<GPCHookManager> m_hookManager; //set hook by each application for low overhead(deffer hook)
+    private:
+        void InitSharedMemory() {
+            std::cout << "Init dll shared memory" << std::endl;
+            memset(&g_GPCSharedMemory, 0, sizeof(GPCSharedMemory));
+            fs::path vtablePath = fs::current_path() / "vtable.csv";
+            memcpy(g_GPCSharedMemory.vtablePath, vtablePath.string().c_str(), MAX_PATH_LEN);
+            fs::path blacklistPath = fs::current_path() / "blacklist.txt";
+            memcpy(g_GPCSharedMemory.blacklistPath, blacklistPath.string().c_str(), MAX_PATH_LEN);
+        }
     };
 }
 

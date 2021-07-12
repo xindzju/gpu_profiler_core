@@ -9,7 +9,7 @@ namespace gpc {
 		bool res = true;
 		switch (hookType) {
 		case HOOK_API_TYPE::HOOK_API_TYPE_DX:
-			res = HookDXGI("dxgi.dll") && HookD3D12("d3d12.dll");
+			res = HookDXGI("dxgi.dll") && HookD3D12("d3d12.dll") && HookSys();
 			break;
 		case HOOK_API_TYPE::HOOK_API_TYPE_VK:
 			res = HookVK();
@@ -125,6 +125,22 @@ namespace gpc {
 		return res;
 	}
 
+	bool GPCHookManager::HookSys() {
+		/*
+		* kernel32.dll: memory, io
+		* user32.dll: window
+		* gdi32.dll: drawing
+		*/
+		bool res = true;
+		auto apiHookInfo = GetAPIHookInfo("CreateProcessA");
+		res = HookFunc(&::CreateProcessA, My_CreateProcessA, (void**)&pReal_CreateProcessA, apiHookInfo);
+		if (res)
+			std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
+		else
+			std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
+		return res;
+	}
+
 	bool GPCHookManager::HookCUDA(const char* dllName) {
 		bool res = true;
 		return res;
@@ -146,6 +162,8 @@ namespace gpc {
 		g_apiHookInfos["CreateDXGIFactory1"] = std::make_shared<GPCAPIHookInfo>("CreateDXGIFactory1");
 		g_apiHookInfos["CreateDXGIFactory2"] = std::make_shared<GPCAPIHookInfo>("CreateDXGIFactory2");
 		g_apiHookInfos["D3D12CreateDevice"] = std::make_shared<GPCAPIHookInfo>("D3D12CreateDevice");
+		g_apiHookInfos["CreateProcessA"] = std::make_shared<GPCAPIHookInfo>("CreateProcessA");
+		g_apiHookInfos["CreateProcessW"] = std::make_shared<GPCAPIHookInfo>("CreateProcessW");
 
 		//debug purpose
 		g_apiHookInfos["CreateSwapChain"] = std::make_shared<GPCAPIHookInfo>("IDXGIFactory", "CreateSwapChain", 10);
