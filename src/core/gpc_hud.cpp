@@ -22,7 +22,7 @@ namespace gpc {
 		return;
 	}
 
-	bool GPCHUDBackendDX12::Init() {}
+	bool GPCHUDBackendDX12::Init() { return true; }
 
 	void GPCHUDBackendDX12::ShutDown() {}
 
