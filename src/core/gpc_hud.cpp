@@ -3,22 +3,18 @@
 namespace gpc {
 
 	void GPCHUD::OnInit() {
-		ImGui::Render();
 		return;
 	}
 
 	void GPCHUD::OnUpdate() {
-		ImGui::Render();
 		return;
 	}
 
 	void GPCHUD::OnRender() {
-		ImGui::Render();
 		return;
 	}
 
 	void GPCHUD::OnDestory() {
-		ImGui::Render();
 		return;
 	}
 

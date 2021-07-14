@@ -8,19 +8,17 @@ namespace gpc {
         bool res = true;
         //hook IDXGIFactory
         res = HookInterfaceFunc((void*)pIDXGIFactory, My_IDXGIFactory_CreateSwapChain, (void**)&pReal_IDXGIFactory_CreateSwapChain, "CreateSwapChain");
-
-        //hook IDXGIFactory2
-        IDXGIFactory2* pIDXGI2Factory = nullptr;
-        pIDXGIFactory->QueryInterface(&pIDXGI2Factory);
-        if (!pIDXGI2Factory)
-        {
-            res = HookInterfaceFunc(pIDXGI2Factory, My_IDXGIFactory2_CreateSwapChainForHwnd, (void**)&pReal_IDXGIFactory2_CreateSwapChainForHwnd, "CreateSwapChainForHwnd");
-            res = HookInterfaceFunc(pIDXGI2Factory, My_IDXGIFactory2_CreateSwapChainForCoreWindow, (void**)&pReal_IDXGIFactory2_CreateSwapChainForCoreWindow, "CreateSwapChainForCoreWindow");
-            res = HookInterfaceFunc(pIDXGI2Factory, My_IDXGIFactory2_CreateSwapChainForComposition, (void**)&pReal_IDXGIFactory2_CreateSwapChainForComposition, "CreateSwapChainForComposition");
-
-            pIDXGI2Factory->Release();
-        }
 		return res;
+    }
+
+    bool HookDXGIFactory2Interface(IDXGIFactory2* pIDXGIFactory2) {
+        std::cout << "\nStart to hook IDXGIFactory2 interface" << std::endl;
+        bool res = true;
+        //hook IDXGIFactory2
+        res = HookInterfaceFunc(pIDXGIFactory2, My_IDXGIFactory2_CreateSwapChainForHwnd, (void**)&pReal_IDXGIFactory2_CreateSwapChainForHwnd, "CreateSwapChainForHwnd");
+        res = HookInterfaceFunc(pIDXGIFactory2, My_IDXGIFactory2_CreateSwapChainForCoreWindow, (void**)&pReal_IDXGIFactory2_CreateSwapChainForCoreWindow, "CreateSwapChainForCoreWindow");
+        res = HookInterfaceFunc(pIDXGIFactory2, My_IDXGIFactory2_CreateSwapChainForComposition, (void**)&pReal_IDXGIFactory2_CreateSwapChainForComposition, "CreateSwapChainForComposition");
+        return res;
     }
 
     bool HookDXGISwapChainInterface(IDXGISwapChain* pIDXGISwapChain) {
@@ -28,15 +26,14 @@ namespace gpc {
         bool res = true;
         //hook IDXGISwapChain
         res = HookInterfaceFunc((void*)pIDXGISwapChain, My_IDXGISwapChain_Present, (void**)&pReal_IDXGISwapChain_Present, "Present");
+        return res;
+    }
 
+    bool HookDXGISwapChain1Interface(IDXGISwapChain1* pIDXGISwapChain1) {
+        std::cout << "\nStart to hook IDXGISwapChain1 interface" << std::endl;
+        bool res = true;
         //hook IDXGISwapChain1
-        IDXGISwapChain1* pIDXGISwapChain1 = nullptr;
-        pIDXGISwapChain->QueryInterface(&pIDXGISwapChain1);
-        if (!pIDXGISwapChain1)
-        {
-            res = HookInterfaceFunc((void*)pIDXGISwapChain1, My_IDXGISwapChain1_Present1, (void**)&pReal_IDXGISwapChain1_Present1, "Present1");
-            pIDXGISwapChain1->Release();
-        }
+        res = HookInterfaceFunc((void*)pIDXGISwapChain1, My_IDXGISwapChain1_Present1, (void**)&pReal_IDXGISwapChain1_Present1, "Present1");
         return res;
     }
 
@@ -133,16 +130,14 @@ namespace gpc {
         }
 
         void WINAPI Post_CreateDXGIFactory2(UINT Flags, REFIID riid, _COM_Outptr_ void** ppFactory) {
-            //std::cout << "Enter Post_CreateDXGIFactory2" << std::endl;
-            //TODO:Cast IDXGIFactory2 to IDXGIFactory
-            //static bool hookOnce = false;
-            //if (!hookOnce) {
-            //    hookOnce = HookDXGIFactoryInterface((IDXGIFactory*)*ppFactory);
-            //    if (hookOnce)
-            //        std::cout << "Hook IDXGIFactory interface succeed" << std::endl;
-            //    else
-            //        std::cout << "Hook IDXGIFactory interface failed" << std::endl;
-            //}
+            static bool hookOnce = false;
+            if (!hookOnce) {
+                hookOnce = HookDXGIFactory2Interface((IDXGIFactory2*)*ppFactory);
+                if (hookOnce)
+                    std::cout << "Hook IDXGIFactory2 interface succeed" << std::endl;
+                else
+                    std::cout << "Hook IDXGIFactory2 interface failed" << std::endl;
+            }
             return;
         }
 #pragma endregion
@@ -200,7 +195,7 @@ namespace gpc {
             //std::cout << "Enter Post_IDXGIFactory_CreateSwapChain" << std::endl;
             static bool hookOnce = false;
             if (!hookOnce) {
-                hookOnce = HookDXGISwapChainInterface(*ppSwapChain);
+                hookOnce = HookDXGISwapChainInterface((IDXGISwapChain*)*ppSwapChain);
                 if (hookOnce)
                     std::cout << "Hook IDXGISwapChain interface succeed" << std::endl;
                 else
@@ -279,11 +274,14 @@ namespace gpc {
             _In_opt_  IDXGIOutput* pRestrictToOutput,
             /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain1** ppSwapChain) {
-            //TODO: IDXGISwapChain1 cast to IDXGISwapChain
-            //if (HookDXGISwapChainInterface((IDXGISwapChain*)*ppSwapChain))
-            //    std::cout << "Hook DXGI SwapChain interface succeed" << std::endl;
-            //else
-            //    std::cout << "Hook DXGI SwapChain interface failed" << std::endl;
+            static bool hookOnce = false;
+            if (!hookOnce) {
+                hookOnce = HookDXGISwapChain1Interface((IDXGISwapChain1*)*ppSwapChain);
+                if (hookOnce)
+                    std::cout << "Hook IDXGISwapChain1 interface succeed" << std::endl;
+                else
+                    std::cout << "Hook IDXGISwapChain1 interface failed" << std::endl;
+            }
             return;
         }
 #pragma endregion
@@ -349,11 +347,14 @@ namespace gpc {
             _In_opt_  IDXGIOutput* pRestrictToOutput,
             /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain1** ppSwapChain) {
-            //TODO: IDXGISwapChain1 cast to IDXGISwapChain
-            //if (HookDXGISwapChainInterface((IDXGISwapChain*)*ppSwapChain))
-            //    std::cout << "Hook DXGI SwapChain interface succeed" << std::endl;
-            //else
-            //    std::cout << "Hook DXGI SwapChain interface failed" << std::endl;
+            static bool hookOnce = false;
+            if (!hookOnce) {
+                hookOnce = HookDXGISwapChain1Interface(*ppSwapChain);
+                if (hookOnce)
+                    std::cout << "Hook IDXGISwapChain1 interface succeed" << std::endl;
+                else
+                    std::cout << "Hook IDXGISwapChain1 interface failed" << std::endl;
+            }
             return;
         }
 #pragma endregion
@@ -411,11 +412,14 @@ namespace gpc {
             _In_opt_  IDXGIOutput* pRestrictToOutput,
             /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain1** ppSwapChain) {
-            //TODO: IDXGISwapChain1 cast to IDXGISwapChain
-            //if (HookDXGISwapChainInterface((IDXGISwapChain*)*ppSwapChain))
-            //    std::cout << "Hook DXGI SwapChain interface succeed" << std::endl;
-            //else
-            //    std::cout << "Hook DXGI SwapChain interface failed" << std::endl;
+            static bool hookOnce = false;
+            if (!hookOnce) {
+                hookOnce = HookDXGISwapChain1Interface(*ppSwapChain);
+                if (hookOnce)
+                    std::cout << "Hook IDXGISwapChain1 interface succeed" << std::endl;
+                else
+                    std::cout << "Hook IDXGISwapChain1 interface failed" << std::endl;
+            }
             return;
         }
 #pragma endregion

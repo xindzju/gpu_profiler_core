@@ -1,5 +1,6 @@
 #pragma once
 /*
+* header file: dxgi.h
 * hook entry: CreateDXGIFactory
 * dxgi interface: IDXGIFactory
 * dxgi method: IDXGIFactory::CreateSwapChain
@@ -8,6 +9,7 @@
 */
 #include <dxgi.h>  
 /*
+* header file: dxgi1_2.h
 * dxgi interface: IDXGIFactory2
 * dxgi method: IDXGIFactory2::CreateSwapChainForHwnd(https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforhwnd)
 * dxgi method: IDXGIFactory2::CreateSwapChainForCoreWindow(https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgifactory2-createswapchainforcorewindow)
@@ -17,6 +19,7 @@
 */
 #include <dxgi1_2.h>
 /* 
+* header file: dxgi1_3.h
 * hook entry: CreateDXGIFactory2	
 */
 #include <dxgi1_3.h>
@@ -28,9 +31,12 @@
 * API calling sequence: app create DXGIFactory -> DXGIFactory create SwapChain -> SwapChain present front buffer to output(monitor)
 */
 namespace gpc {
-	//lost of variants for these interface
+	//dxgi 1~7
 	bool HookDXGIFactoryInterface(IDXGIFactory* pIDXGIFactory);
+	bool HookDXGIFactory2Interface(IDXGIFactory2* pIDXGIFactory2);
+	//swap chain 1~4
 	bool HookDXGISwapChainInterface(IDXGISwapChain* pIDXGISwapChain);
+	bool HookDXGISwapChain1Interface(IDXGISwapChain1* pIDXGISwapChain1);
 	
 	//dxgi1~7
 #pragma region HookCreateDXGIFactory

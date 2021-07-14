@@ -13,7 +13,7 @@
 #endif
 
 //1KB(1024 bytes)
-typedef struct GPCSharedMemory {
+struct GPCSharedMemory {
 	GPCSharedMemory() {
 		sizeof(this, 0, sizeof(*this));
 	}
@@ -22,7 +22,7 @@ typedef struct GPCSharedMemory {
 	char lastHookedProcessName[MIN_PATH_LEN] = "";
 	uint16_t dllLoadCount = 0;
 	bool hooked = false;
-}GPCSharedMemory;
+};
 
 extern "C" {
 	extern LIBRARY_API GPCSharedMemory g_GPCSharedMemory;
