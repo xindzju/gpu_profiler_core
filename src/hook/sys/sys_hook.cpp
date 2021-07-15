@@ -113,7 +113,7 @@ namespace gpc {
         _In_ LPSTARTUPINFOW lpStartupInfo,
         _Out_ LPPROCESS_INFORMATION lpProcessInformation
     ) {
-        std::cout << "Enter My_CreateProcessW" << std::endl;
+        //std::cout << "Enter My_CreateProcessW" << std::endl;
         bool res = true;
         Pre_CreateProcessW(lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes, bInheritHandles, dwCreationFlags, lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
         res = pReal_CreateProcessW(lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes, bInheritHandles, dwCreationFlags, lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation);

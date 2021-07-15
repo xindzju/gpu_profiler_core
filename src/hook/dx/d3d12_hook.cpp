@@ -59,7 +59,7 @@ namespace gpc {
         _In_ REFIID riid, // Expected: ID3D12Device
         _COM_Outptr_opt_ void** ppDevice) {
         HRESULT res;
-        std::cout << "Enter My_D3D12CreateDevice" << std::endl;
+        //std::cout << "Enter My_D3D12CreateDevice" << std::endl;
         if (!ppDevice) //debug mode war
             return S_OK;
         Pre_D3D12CreateDevice(pAdapter, MinimumFeatureLevel, riid, ppDevice);

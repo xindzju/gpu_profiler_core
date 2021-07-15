@@ -1,6 +1,7 @@
 #include "dxgi_hook.h"
 #include "d3d12_hook.h"
 #include "hook/gpc_hook_utils.h"
+#include "gpc.h"
 
 namespace gpc {
     bool HookDXGIEntry(const char* dllName) {
@@ -120,7 +121,7 @@ namespace gpc {
     }
 
     HRESULT WINAPI My_CreateDXGIFactory(REFIID riid, _COM_Outptr_ void** ppFactory) {
-        std::cout << "Enter My_CreateDXGIFactory" << std::endl;
+        //std::cout << "Enter My_CreateDXGIFactory" << std::endl;
         HRESULT res;
         Pre_CreateDXGIFactory(riid, ppFactory);
         res = pReal_CreateDXGIFactory(riid, ppFactory);
@@ -189,7 +190,7 @@ namespace gpc {
         }
 
         HRESULT WINAPI My_CreateDXGIFactory2(UINT Flags, REFIID riid, _COM_Outptr_ void** ppFactory) {
-            std::cout << "Enter My_CreateDXGIFactory2" << std::endl;
+            //std::cout << "Enter My_CreateDXGIFactory2" << std::endl;
             HRESULT res;
             Pre_CreateDXGIFactory2(Flags, riid, ppFactory);
             res = pReal_CreateDXGIFactory2(Flags, riid, ppFactory);
@@ -237,7 +238,7 @@ namespace gpc {
             _In_  DXGI_SWAP_CHAIN_DESC * pDesc,
             /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain * *ppSwapChain) {
-            std::cout << "Enter My_IDXGIFactory_CreateSwapChain" << std::endl;
+            //std::cout << "Enter My_IDXGIFactory_CreateSwapChain" << std::endl;
             HRESULT res;
             Pre_IDXGIFactory_CreateSwapChain(This, pDevice, pDesc, ppSwapChain);
             res = pReal_IDXGIFactory_CreateSwapChain(This, pDevice, pDesc, ppSwapChain);
@@ -310,7 +311,7 @@ namespace gpc {
             _In_opt_  IDXGIOutput* pRestrictToOutput,
             /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain1** ppSwapChain) {
-            std::cout << "Enter My_IDXGIFactory2_CreateSwapChainForHwnd" << std::endl;
+            //std::cout << "Enter My_IDXGIFactory2_CreateSwapChainForHwnd" << std::endl;
             HRESULT res;
             Pre_IDXGIFactory2_CreateSwapChainForHwnd(This, pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, ppSwapChain);
             res = pReal_IDXGIFactory2_CreateSwapChainForHwnd(This, pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, ppSwapChain);
@@ -387,7 +388,7 @@ namespace gpc {
             _In_opt_  IDXGIOutput* pRestrictToOutput,
             /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain1** ppSwapChain) {
-            std::cout << "Enter My_IDXGIFactory2_CreateSwapChainForCoreWindow" << std::endl;
+            //std::cout << "Enter My_IDXGIFactory2_CreateSwapChainForCoreWindow" << std::endl;
             HRESULT res;
             Pre_IDXGIFactory2_CreateSwapChainForCoreWindow(This, pDevice, pWindow, pDesc, pRestrictToOutput, ppSwapChain);
             res = pReal_IDXGIFactory2_CreateSwapChainForCoreWindow(This, pDevice, pWindow, pDesc, pRestrictToOutput, ppSwapChain);
@@ -456,7 +457,7 @@ namespace gpc {
             _In_opt_  IDXGIOutput* pRestrictToOutput,
             /* [annotation][out] */
             _COM_Outptr_  IDXGISwapChain1** ppSwapChain) {
-            std::cout << "Enter My_IDXGIFactory2_CreateSwapChainForComposition" << std::endl;
+            //std::cout << "Enter My_IDXGIFactory2_CreateSwapChainForComposition" << std::endl;
             HRESULT res;
             Pre_IDXGIFactory2_CreateSwapChainForComposition(This, pDevice, pDesc, pRestrictToOutput, ppSwapChain);
             res = pReal_IDXGIFactory2_CreateSwapChainForComposition(This, pDevice, pDesc, pRestrictToOutput, ppSwapChain);
@@ -511,17 +512,11 @@ namespace gpc {
             IDXGISwapChain * This,
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT Flags) {
-            std::cout << "Enter My_IDXGISwapChain_Present" << std::endl;
+            //std::cout << "Enter My_IDXGISwapChain_Present" << std::endl;
             HRESULT res;
             Pre_IDXGISwapChain_Present(This, SyncInterval, Flags);
             res = pReal_IDXGISwapChain_Present(This, SyncInterval, Flags);
-            Pre_IDXGISwapChain_Present(This, SyncInterval, Flags);
-
-            //debug
-            static int frameIndex = 0;
-            std::ofstream ofs("my_present.log", std::ios_base::app);
-            ofs << frameIndex++ << "\n";
-            ofs.close();
+            Post_IDXGISwapChain_Present(This, SyncInterval, Flags);
             return res;
         }
 
@@ -530,6 +525,7 @@ namespace gpc {
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT Flags) {
             //std::cout << "Enter Pre_IDXGISwapChain_Present" << std::endl;
+            g_GPUProfilerCore->m_inspectorManager->m_frameInspector->OnFrameEnd();
             return;
         }
 
@@ -538,6 +534,7 @@ namespace gpc {
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT Flags) {
             //std::cout << "Enter Post_IDXGISwapChain_Present" << std::endl;
+            g_GPUProfilerCore->m_inspectorManager->m_frameInspector->OnFrameStart();
             return;
         }
 #pragma endregion
@@ -558,7 +555,7 @@ namespace gpc {
             /* [in] */ UINT PresentFlags,
             /* [annotation][in] */
             _In_  const DXGI_PRESENT_PARAMETERS* pPresentParameters) {
-            std::cout << "Enter My_IDXGISwapchain1_Present1" << std::endl;
+            //std::cout << "Enter My_IDXGISwapchain1_Present1" << std::endl;
             HRESULT res;
             Pre_IDXGISwapChain1_Present1(This, SyncInterval, PresentFlags, pPresentParameters);
             res = pReal_IDXGISwapChain1_Present1(This, SyncInterval, PresentFlags, pPresentParameters);

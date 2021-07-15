@@ -5,10 +5,15 @@
 #include <set>
 #include <vector>
 #include <fstream>
+#include <sstream>
 #include <filesystem>
 #include <regex>
 #include <shared_mutex>
 
+#ifdef _WIN32
+#include "Windows.h"
+#else
+#endif
 namespace fs = std::filesystem;
 
 #ifdef _WIN32

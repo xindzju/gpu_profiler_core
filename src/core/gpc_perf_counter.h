@@ -1,4 +1,5 @@
 #pragma once
+#include "gpc_utils.h"
 
 namespace gpc {
 	class GPCPerfCounter {
@@ -9,7 +10,17 @@ namespace gpc {
 		*/
 	};
 
+
+
+	class GPCPerfMarker : public GPCPerfCounter {
+
+	};
+
 	class GPCPerfCounterManager {
+	public:
+		GPCPerfCounterManager() {
+		}
+		~GPCPerfCounterManager() {}
 
 	};
 }

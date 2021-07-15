@@ -5,14 +5,35 @@ namespace gpc {
 
 	};
 
-	class GPCSwapChainTracker : public GPCTracker {
+	class GPCOBJTracker : public GPCTracker {
 
 	};
 
-	//TODO: how to design
-	class GPCSwapChainTrackerManager {
-	public:
-		void StartFrame();
-		void EndFrame();
+	class GPCSwapChainTracker : public GPCOBJTracker {
+
+	};
+
+    class GPCDeviceTracker : public GPCOBJTracker {
+
+    };
+
+	class GPCCommandQueueTracker : public GPCOBJTracker {
+
+	};
+
+	class GPCCommandListTracker : public GPCOBJTracker {
+
+	};
+
+	class GPCPipelineStateObjectTracker : public GPCOBJTracker {
+
+	};
+
+	class GPCRootSignatureTracker : public GPCOBJTracker {
+
+	};
+
+	class GPCTrackerManager {
+
 	};
 }

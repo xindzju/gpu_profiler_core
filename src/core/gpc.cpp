@@ -13,8 +13,10 @@ namespace gpc {
 			InitSharedMemory();
 		m_processManager = std::make_unique<GPCProcessManager>();
 		std::string processName = m_processManager->GetProcessName();
-		if (m_processManager->IsValidProcess(processName))
+		if (m_processManager->IsValidProcess(processName)) {
 			m_hookManager = std::make_unique<GPCHookManager>();
+			m_inspectorManager = std::make_unique<GPCInpectorManager>();
+		}
 	}
 
 	GPUProfilerCore::~GPUProfilerCore() {}

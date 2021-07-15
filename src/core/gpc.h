@@ -1,27 +1,10 @@
 /*
 * The GPU Profiler Core is a library which used to profile GPU performance, memory and shaders of D3D12/CUDA applications
 * Framework: https://app.diagrams.net/#G1mf4-nKd5mJUAEmCJaKEXi7mqRiZrUhvY
+* Methodology: app => gpc inspector => gpc analyzer => gpc optimizer
 */
 #pragma once
-#include <iostream>
-#include <filesystem>
-#include <string>
-#include <set>
-#include <map>
-#include <fstream>
-#include <sstream>
-
-#ifdef _WIN32
-#include "Windows.h"
-#else
-#endif
-
-#include "core/gpc_defines.h"
-#include "core/gpc_process_manager.h"
-#include "core/gpc_shared.h" 
-#include "utils/gpc_utils.h"
-#include "utils/gpc_vtable_parser.h"
-#include "hook/gpc_hook_manager.h"
+#include "core/gpc_internal.h"
 
 /*
 * Note: when gpc used as a static library, file name with prefix "gpc_" should be input into the include folder
@@ -43,6 +26,7 @@ namespace gpc {
 
         std::unique_ptr<GPCProcessManager> m_processManager; 
         std::unique_ptr<GPCHookManager> m_hookManager; //set hook by each application for low overhead(deffer hook)
+        std::unique_ptr<GPCInpectorManager> m_inspectorManager;
     private:
         void InitSharedMemory() {
             std::cout << "Init dll shared memory" << std::endl;
