@@ -1,22 +1,22 @@
 #pragma once
 #include "utils/gpc_utils.h" 
-#include "gpc_hook_utils.h"
-#include "gpc_hook_defines.h"
+#include "hook/gpc_hook_utils.h"
+#include "hook/gpc_hook_defines.h"
 
 //dx hook
 #include <d3d12.h>
 #include <dxgi.h>
 #include <dxgi1_3.h>
-#include "dx/dxgi_hook.h"
-#include "dx/d3d12_hook.h"
+#include "hook/dx/hook_d3d12.h"
+#include "hook/dx/hook_dxgi.h"
 //vk hook
-#include "vk/vk_hook.h"
+#include "hook/vk/hook_vk.h"
 //ogl hook
-#include "ogl/ogl_hook.h"
+#include "hook/ogl/hook_ogl.h"
 //cuda hook
-#include "cuda/cuda_hook.h"
+#include "hook/cuda/hook_cuda.h"
 //sys hook
-#include "sys/sys_hook.h"
+#include "hook/sys/hook_sys.h"
 
 namespace gpc {
 	class GPCHookManager : public GPCSingleton<GPCHookManager>{

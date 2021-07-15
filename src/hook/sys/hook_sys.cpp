@@ -1,5 +1,5 @@
-#include "sys_hook.h"
-#include "gpc_hook_utils.h"
+#include "hook/sys/hook_sys.h"
+#include "hook/gpc_hook_utils.h"
 
 namespace gpc {
     bool HookSysEntry() {

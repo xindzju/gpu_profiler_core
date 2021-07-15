@@ -52,7 +52,9 @@ namespace gpc {
 #ifdef USE_CUSTOM_BACKEND
 		m_backend->GPC_ImplDX12_RenderDrawData();
 #else
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData());
+		//TODO
+		static ID3D12GraphicsCommandList*   g_pd3dCommandList = NULL;
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), g_pd3dCommandList);
 #endif
 		////Swap
 		//g_pSwapChain->Present(1, 0);

@@ -1,6 +1,5 @@
-#include "d3d12_hook.h"
-#include "gpc_hook_utils.h"
-#include "gpc_shared.h"
+#include "hook/dx/hook_d3d12.h"
+#include "hook/gpc_hook_utils.h"
 
 namespace gpc {
     bool HookD3D12Entry(const char* dllName) {

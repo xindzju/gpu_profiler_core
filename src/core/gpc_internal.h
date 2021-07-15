@@ -7,7 +7,6 @@
 #include "core/gpc_struct.h"
 #include "core/gpc_defines.h"
 #include "core/gpc_hud.h"
-#include "core/gpc_perf_counter.h"
 #include "core/gpc_process_manager.h"
 #include "core/gpc_object_tracker.h"
 

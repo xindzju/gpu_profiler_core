@@ -1,4 +1,4 @@
-#include "hook/dx/dxgi_hook.h"
+#include "hook/dx/hook_dxgi.h"
 #include "hook/gpc_hook_utils.h"
 #include "core/gpc_object_tracker_manager.h"
 #include "core/gpc.h" //todo: move frame start/end to swapchain
