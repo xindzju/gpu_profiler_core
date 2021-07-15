@@ -2,8 +2,12 @@
 * Integrated Dear ImGui: platform backend(Win32, SDL, glfw), render backend(dx12, vulkan, ogl)
 */
 #pragma once
-//#include "imgui.h"
-#include "gpc_utils.h"
+#include "imgui.h"
+//using default Platform + Renderer backends
+#include "backends/imgui_impl_win32.h"
+#include "backends/imgui_impl_dx12.h"
+
+#include "core/gpc_internal.h"
 
 namespace gpc {
 	class GPCHUDBackend {
@@ -24,6 +28,15 @@ namespace gpc {
 		virtual void ShutDown();
 		virtual void NewFrame();
 		virtual void RenderDrawData();
+
+		//TODO:
+		void GPC_ImplWin32_Init() {}
+		void GPC_ImplDX12_Init() {}
+		void GPC_ImplWin32_NewFrame() {}
+		void GPC_ImplDX12_NewFrame() {}
+		void GPC_ImplDX12_RenderDrawData() {}
+		void GPC_ImplWin32_Shutdown() {}
+		void GPC_ImplDX12_Shutdown() {}
 	};
 
 	/*
@@ -48,8 +61,11 @@ namespace gpc {
 	public:
 		GPCHUD() {
 			m_backend = std::make_unique<GPCHUDBackendDX12>();
+			OnInit();
 		};
-		~GPCHUD() {};
+		~GPCHUD() {
+			OnDestory();
+		};
 
 		virtual void OnInit();
 		virtual void OnRender();
@@ -57,7 +73,9 @@ namespace gpc {
 		virtual void OnDestory();
 
 	private:
+		//bool m_bInitialized = false;
+		HWND m_window;
 		std::unique_ptr<FrameResource> m_frameResource;
-		std::unique_ptr<GPCHUDBackend> m_backend = nullptr;
+		std::unique_ptr<GPCHUDBackendDX12> m_backend = nullptr;
 	};
 }

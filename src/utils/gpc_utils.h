@@ -22,8 +22,6 @@ namespace fs = std::filesystem;
 #else
 #endif
 
-#include "..\core\gpc_struct.h"
-
 namespace gpc {
 	//singleton interface
     template<class T>

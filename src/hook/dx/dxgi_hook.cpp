@@ -1,7 +1,7 @@
-#include "dxgi_hook.h"
-#include "d3d12_hook.h"
+#include "hook/dx/dxgi_hook.h"
 #include "hook/gpc_hook_utils.h"
-#include "gpc.h"
+#include "core/gpc_object_tracker_manager.h"
+#include "core/gpc.h" //todo: move frame start/end to swapchain
 
 namespace gpc {
     bool HookDXGIEntry(const char* dllName) {
@@ -108,6 +108,10 @@ namespace gpc {
             HookDXGISwapChainInterface(pIDXGISwapChain);
             pIDXGISwapChain->Release();
         }
+
+        //create GPCSwapChainTracker
+        auto pSwapChainTracker = GPCSwapChainTrackerManager::GetSingleton()->GetSwapChainTracker();
+        pSwapChainTracker->SetSwapChain((IDXGISwapChain*)pIDXGISwapChain1); //Need Refactor
         return res;
     }
 
