@@ -31,6 +31,7 @@
 * API calling sequence: app create DXGIFactory -> DXGIFactory create SwapChain -> SwapChain present front buffer to output(monitor)
 */
 namespace gpc {
+	bool HookDXGIEntry(const char* dllName);
 	//dxgi 1~7
 	bool HookDXGIFactoryInterface(IDXGIFactory* pIDXGIFactory);
 	bool HookDXGIFactory2Interface(IDXGIFactory2* pIDXGIFactory2);

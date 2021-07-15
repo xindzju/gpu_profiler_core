@@ -3,11 +3,68 @@
 #include "hook/gpc_hook_utils.h"
 
 namespace gpc {
+    bool HookDXGIEntry(const char* dllName) {
+        bool res = true;
+        HMODULE module = LoadLibrary(dllName);
+        if (module) {
+            void* pFuncAddress = GetProcAddress(module, "CreateDXGIFactory");
+            if (pFuncAddress) {
+                auto apiHookInfo = GetAPIHookInfo("CreateDXGIFactory");
+                res &= HookFunc(pFuncAddress, My_CreateDXGIFactory, (void**)&pReal_CreateDXGIFactory, apiHookInfo);
+                if (res)
+                    std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
+                else
+                    std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
+            }
+            else {
+                std::cout << "Get CreateDXGIFactory address failed" << std::endl;
+                res = false;
+            }
+
+            /*
+            pFuncAddress = GetProcAddress(module, "CreateDXGIFactory1");
+            if (pFuncAddress) {
+                auto apiHookInfo = GetAPIHookInfo("CreateDXGIFactory1");
+                res = HookFunc(pFuncAddress, My_CreateDXGIFactory1, (void**)&pReal_CreateDXGIFactory1, apiHookInfo);
+                if (res)
+                    std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
+                else
+                    std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
+            }
+            else {
+                std::cout << "Get CreateDXGIFactory1 address failed" << std::endl;
+                res = false;
+            }
+            */
+
+            pFuncAddress = GetProcAddress(module, "CreateDXGIFactory2");
+            if (pFuncAddress) {
+                auto apiHookInfo = GetAPIHookInfo("CreateDXGIFactory2");
+                res &= HookFunc(pFuncAddress, My_CreateDXGIFactory2, (void**)&pReal_CreateDXGIFactory2, apiHookInfo);
+                if (res)
+                    std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
+                else
+                    std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
+            }
+            else {
+                std::cout << "Get CreateDXGIFactory2 address failed" << std::endl;
+                res = false;
+            }
+        }
+        else {
+            std::cout << "Load dxgi.lib failed" << std::endl;
+            res = false;
+        }
+        //FreeLibrary(module);
+
+        return res;
+    }
+
     bool HookDXGIFactoryInterface(IDXGIFactory* pIDXGIFactory) {
         std::cout << "\nStart to hook IDXGIFactory interface" << std::endl;
         bool res = true;
         //hook IDXGIFactory
-        res = HookInterfaceFunc((void*)pIDXGIFactory, My_IDXGIFactory_CreateSwapChain, (void**)&pReal_IDXGIFactory_CreateSwapChain, "CreateSwapChain");
+        res &= HookInterfaceFunc((void*)pIDXGIFactory, My_IDXGIFactory_CreateSwapChain, (void**)&pReal_IDXGIFactory_CreateSwapChain, "CreateSwapChain");
 		return res;
     }
 
@@ -15,9 +72,17 @@ namespace gpc {
         std::cout << "\nStart to hook IDXGIFactory2 interface" << std::endl;
         bool res = true;
         //hook IDXGIFactory2
-        res = HookInterfaceFunc(pIDXGIFactory2, My_IDXGIFactory2_CreateSwapChainForHwnd, (void**)&pReal_IDXGIFactory2_CreateSwapChainForHwnd, "CreateSwapChainForHwnd");
-        res = HookInterfaceFunc(pIDXGIFactory2, My_IDXGIFactory2_CreateSwapChainForCoreWindow, (void**)&pReal_IDXGIFactory2_CreateSwapChainForCoreWindow, "CreateSwapChainForCoreWindow");
-        res = HookInterfaceFunc(pIDXGIFactory2, My_IDXGIFactory2_CreateSwapChainForComposition, (void**)&pReal_IDXGIFactory2_CreateSwapChainForComposition, "CreateSwapChainForComposition");
+        res &= HookInterfaceFunc(pIDXGIFactory2, My_IDXGIFactory2_CreateSwapChainForHwnd, (void**)&pReal_IDXGIFactory2_CreateSwapChainForHwnd, "CreateSwapChainForHwnd");
+        res &= HookInterfaceFunc(pIDXGIFactory2, My_IDXGIFactory2_CreateSwapChainForCoreWindow, (void**)&pReal_IDXGIFactory2_CreateSwapChainForCoreWindow, "CreateSwapChainForCoreWindow");
+        res &= HookInterfaceFunc(pIDXGIFactory2, My_IDXGIFactory2_CreateSwapChainForComposition, (void**)&pReal_IDXGIFactory2_CreateSwapChainForComposition, "CreateSwapChainForComposition");
+        
+        //hook the base interface(IDXGIFactory)
+        IDXGIFactory* pIDXGIFactory = nullptr;
+        pIDXGIFactory2->QueryInterface(&pIDXGIFactory);
+        if (pIDXGIFactory) {
+            HookDXGIFactoryInterface(pIDXGIFactory);
+            pIDXGIFactory->Release();
+        }
         return res;
     }
 
@@ -25,7 +90,7 @@ namespace gpc {
         std::cout << "\nStart to hook IDXGISwapChain interface" << std::endl;
         bool res = true;
         //hook IDXGISwapChain
-        res = HookInterfaceFunc((void*)pIDXGISwapChain, My_IDXGISwapChain_Present, (void**)&pReal_IDXGISwapChain_Present, "Present");
+        res &= HookInterfaceFunc((void*)pIDXGISwapChain, My_IDXGISwapChain_Present, (void**)&pReal_IDXGISwapChain_Present, "Present");
         return res;
     }
 
@@ -33,7 +98,15 @@ namespace gpc {
         std::cout << "\nStart to hook IDXGISwapChain1 interface" << std::endl;
         bool res = true;
         //hook IDXGISwapChain1
-        res = HookInterfaceFunc((void*)pIDXGISwapChain1, My_IDXGISwapChain1_Present1, (void**)&pReal_IDXGISwapChain1_Present1, "Present1");
+        res &= HookInterfaceFunc((void*)pIDXGISwapChain1, My_IDXGISwapChain1_Present1, (void**)&pReal_IDXGISwapChain1_Present1, "Present1");
+
+        //hook the base interface(IDXGISwapChain)
+        IDXGISwapChain* pIDXGISwapChain = nullptr;
+        pIDXGISwapChain1->QueryInterface(&pIDXGISwapChain);
+        if (pIDXGISwapChain) {
+            HookDXGISwapChainInterface(pIDXGISwapChain);
+            pIDXGISwapChain->Release();
+        }
         return res;
     }
 

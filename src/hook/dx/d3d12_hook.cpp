@@ -3,6 +3,33 @@
 #include "gpc_shared.h"
 
 namespace gpc {
+    bool HookD3D12Entry(const char* dllName) {
+        bool res = true;
+        HMODULE module = LoadLibrary(dllName);
+        if (module) {
+            void* pFuncAddress = GetProcAddress(module, "D3D12CreateDevice");
+            if (pFuncAddress) {
+                auto apiHookInfo = GetAPIHookInfo("D3D12CreateDevice");
+                res &= HookFunc(pFuncAddress, My_D3D12CreateDevice, (void**)&pReal_D3D12CreateDevice, apiHookInfo);
+                if (res)
+                    std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
+                else
+                    std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
+            }
+            else {
+                std::cout << "Get D3D12CreateDevice address failed" << std::endl;
+                res = false;
+            }
+        }
+        else {
+            std::cout << "Load d3d12.lib failed" << std::endl;
+            res = false;
+        }
+        //FreeLibrary(module);
+
+        return res;
+    }
+
     bool HookD3D12DeviceInterface(ID3D12Device* pDevice) {
         std::cout << "Start to hook ID3D12Device interface" << std::endl;
         //ID3DDevice1 ~ 9

@@ -56,6 +56,10 @@ namespace gpc {
 #endif
 	}
 
+	/*
+	* before detour: pRealFunc -> ICD(Installable Client Driver)
+	* after detour: pRealFunc -> pHookFunc-> pNextFunc -> ICD(Installable Client Driver)
+	*/
 	inline bool HookFunc(void* pRealFunc, void* pHookFunc, void** pNextFunc, GPCAPIHookInfo* apiHookInfo) {
 		bool res = true;
 		if (g_allHookFuncs.find(pRealFunc) != g_allHookFuncs.end()) {
@@ -81,7 +85,7 @@ namespace gpc {
 				return false;
 			}
 #endif
-			if (!pNextFunc)
+			if (!pNextFunc || (pRealFunc == *pNextFunc))
 				res = false;
 			g_allHookFuncs[pRealFunc] = pHookFunc;
 		}
@@ -96,7 +100,7 @@ namespace gpc {
 		bool res = true;
 		uint64_t* pVTable = (uint64_t*)*(uint64_t*)pInterface;
 		auto apiHookInfo = GetAPIHookInfo(apiName);
-		res = HookFunc((void*)pVTable[apiHookInfo->vTableOffset], pHookFunc, (void**)&pRealFunc, apiHookInfo);
+		res = HookFunc((void*)pVTable[apiHookInfo->vTableOffset], pHookFunc, pRealFunc, apiHookInfo);
 		if (res)
 			std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
 		else

@@ -42,103 +42,15 @@ namespace gpc {
 	}
 
 	bool GPCHookManager::HookDXGI(const char* dllName) {
-		bool res = true;
-		HMODULE module = LoadLibrary(dllName);
-		if (module) {
-			void* pFuncAddress = GetProcAddress(module, "CreateDXGIFactory");
-			if (pFuncAddress) {
-				auto apiHookInfo = GetAPIHookInfo("CreateDXGIFactory");
-				res = HookFunc(pFuncAddress, My_CreateDXGIFactory, (void**)&pReal_CreateDXGIFactory, apiHookInfo);
-				if (res)
-					std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
-				else 
-					std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
-			}
-			else {
-				std::cout << "Get CreateDXGIFactory address failed" << std::endl;
-				res = false;
-			}
-
-			/*
-			pFuncAddress = GetProcAddress(module, "CreateDXGIFactory1");
-			if (pFuncAddress) {
-				auto apiHookInfo = GetAPIHookInfo("CreateDXGIFactory1");
-				res = HookFunc(pFuncAddress, My_CreateDXGIFactory1, (void**)&pReal_CreateDXGIFactory1, apiHookInfo);
-				if (res)
-					std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
-				else
-					std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
-			}
-			else {
-				std::cout << "Get CreateDXGIFactory1 address failed" << std::endl;
-				res = false;
-			}
-			*/
-
-			pFuncAddress = GetProcAddress(module, "CreateDXGIFactory2");
-			if (pFuncAddress) {
-				auto apiHookInfo = GetAPIHookInfo("CreateDXGIFactory2");
-				res = HookFunc(pFuncAddress, My_CreateDXGIFactory2, (void**)&pReal_CreateDXGIFactory2, apiHookInfo);
-				if (res)
-					std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
-				else
-					std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
-			}
-			else {
-				std::cout << "Get CreateDXGIFactory2 address failed" << std::endl;
-				res = false;
-			}
-		}
-		else {
-			std::cout << "Load dxgi.lib failed" << std::endl;
-			res = false;
-		}
-		//FreeLibrary(module);
-
-		return res;
+		return HookDXGIEntry(dllName);
 	}
 
-	bool GPCHookManager::HookD3D12(const char* pModule) {
-		bool res = true;
-		HMODULE module = LoadLibrary(pModule);
-		if (module) {
-			void* pFuncAddress = GetProcAddress(module, "D3D12CreateDevice");
-			if (pFuncAddress) {
-				auto apiHookInfo = GetAPIHookInfo("D3D12CreateDevice");
-				res = HookFunc(pFuncAddress, My_D3D12CreateDevice, (void**)&pReal_D3D12CreateDevice, apiHookInfo);
-				if (res)
-					std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
-				else
-					std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
-			}
-			else {
-				std::cout << "Get D3D12CreateDevice address failed" << std::endl;
-				res = false;
-			}
-		}
-		else {
-			std::cout << "Load d3d12.lib failed" << std::endl;
-			res = false;
-		}
-		//FreeLibrary(module);
-
-		return res;
+	bool GPCHookManager::HookD3D12(const char* dllName) {
+		return HookD3D12Entry(dllName);
 	}
 
 	bool GPCHookManager::HookSys() {
-		/*
-		* kernel32.dll: memory, io
-		* user32.dll: window
-		* gdi32.dll: drawing
-		*/
-		bool res = true;
-		auto apiHookInfo = GetAPIHookInfo("CreateProcessA");
-		res = HookFunc(&::CreateProcessA, My_CreateProcessA, (void**)&pReal_CreateProcessA, apiHookInfo);
-		if (res)
-			std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
-		else
-			std::cout << "Hook api succeed: " << apiHookInfo->apiName << std::endl;
-		return res;
+		return HookSysEntry();
 	}
 
 	bool GPCHookManager::HookCUDA(const char* dllName) {
