@@ -1,6 +1,10 @@
 #pragma once
 #include <stdint.h>
 #include <string>
+#ifdef _WIN32
+#include <Windows.h>
+#else
+#endif
 
 //#define USE_MINHOOK
 #define USE_DETOUR
@@ -21,6 +25,13 @@ namespace gpc {
 		HOOK_API_TYPE_OGL = 1 << 2, // 4
 		HOOK_API_TYPE_CUDA = 1 << 3, // 8
 		HOOK_API_TYPE_ALL = HOOK_API_TYPE_DX | HOOK_API_TYPE_VK | HOOK_API_TYPE_OGL | HOOK_API_TYPE_CUDA
+	};
+
+	struct GPCHookInfo {
+		std::wstring libName;
+		std::string hookFunction;
+		DWORD threadID = 0;
+		int hookID;
 	};
 
 	struct GPCAPIHookInfo {
