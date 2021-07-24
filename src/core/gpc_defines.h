@@ -10,3 +10,4 @@
 
 //#define USE_CUSTOM_BACKEND
 
+#define PRINT_MEMBER_FUNC_NAME  std::cout << typeid(*this).name() << "::" << __FUNCTION__ << std::endl;

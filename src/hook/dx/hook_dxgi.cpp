@@ -1,7 +1,7 @@
 #include "hook/dx/hook_dxgi.h"
 #include "hook/gpc_hook_utils.h"
-#include "core/gpc_object_tracker_manager.h"
-#include "core/gpc.h" //todo: move frame start/end to swapchain
+#include "core/tracker/gpc_swapchain_tracker.h"
+#include "core/gpc_inspector.h"
 
 namespace gpc {
     bool HookDXGIEntry(const char* dllName) {
@@ -110,8 +110,8 @@ namespace gpc {
         }
 
         //create GPCSwapChainTracker
-        auto pSwapChainTracker = GPCSwapChainTrackerManager::GetSingleton()->GetSwapChainTracker();
-        pSwapChainTracker->SetSwapChain((IDXGISwapChain*)pIDXGISwapChain1); //Need Refactor
+        auto pSwapChainTracker = GPCDXGISwapChainTrackerManager::GetSingleton()->GetSwapChainTracker();
+        pSwapChainTracker->Init((IDXGISwapChain*)pIDXGISwapChain1);
         return res;
     }
 
@@ -529,7 +529,8 @@ namespace gpc {
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT Flags) {
             //std::cout << "Enter Pre_IDXGISwapChain_Present" << std::endl;
-            g_GPUProfilerCore->m_inspectorManager->m_frameInspector->OnFrameEnd();
+            auto pFrameInspector = GPCInpectorManager::GetSingleton()->GetFrameInspector();
+            pFrameInspector->OnFrameEnd();
             return;
         }
 
@@ -538,7 +539,8 @@ namespace gpc {
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT Flags) {
             //std::cout << "Enter Post_IDXGISwapChain_Present" << std::endl;
-            g_GPUProfilerCore->m_inspectorManager->m_frameInspector->OnFrameStart();
+            auto pFrameInspector = GPCInpectorManager::GetSingleton()->GetFrameInspector();
+            pFrameInspector->OnFrameStart();
             return;
         }
 #pragma endregion

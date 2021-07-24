@@ -12,15 +12,14 @@
 
 #ifdef _WIN32
 #include "Windows.h"
+#include <Psapi.h> //process related api
+#include <wrl.h> //COM Ptr
 #else
 #endif
-namespace fs = std::filesystem;
 
-#ifdef _WIN32
-#include <Windows.h>
-#include <Psapi.h>
-#else
-#endif
+namespace fs = std::filesystem;
+template<class T>
+using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 namespace gpc {
 	//singleton interface

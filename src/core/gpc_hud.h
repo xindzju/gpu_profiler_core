@@ -2,14 +2,18 @@
 * Integrated Dear ImGui: platform backend(Win32, SDL, glfw), render backend(dx12, vulkan, ogl)
 */
 #pragma once
+#include "core/gpc_common.h"
+
 #include "imgui.h"
+#ifndef USE_CUSTOM_BACKEND
 //using default Platform + Renderer backends
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_dx12.h"
+#endif
 
-#include "core/gpc_internal.h"
 
 namespace gpc {
+	//GPCHUDBackend, including platform backend + render backend
 	class GPCHUDBackend {
 	public:
 		virtual bool Init() = 0;
@@ -18,10 +22,10 @@ namespace gpc {
 		virtual void RenderDrawData() = 0;
 	};
 
-	class GPCHUDBackendDX12 : public GPCHUDBackend {
+	class GPCD3D12HUDBackend : public GPCHUDBackend {
 	public:
-		GPCHUDBackendDX12() {};
-		~GPCHUDBackendDX12() {};
+		GPCD3D12HUDBackend() {};
+		~GPCD3D12HUDBackend() {};
 
 		//platform(win32), render(dx12)
 		virtual bool Init();
@@ -29,53 +33,55 @@ namespace gpc {
 		virtual void NewFrame();
 		virtual void RenderDrawData();
 
-		//TODO:
+		//platform backend: win32
 		void GPC_ImplWin32_Init() {}
-		void GPC_ImplDX12_Init() {}
+		void GPC_ImplWin32_Shutdown() {}
 		void GPC_ImplWin32_NewFrame() {}
+
+		//render backend: dx12
+		void GPC_ImplDX12_Init() {}
 		void GPC_ImplDX12_NewFrame() {}
 		void GPC_ImplDX12_RenderDrawData() {}
-		void GPC_ImplWin32_Shutdown() {}
 		void GPC_ImplDX12_Shutdown() {}
-	};
 
-	/*
-	class GPCHUDBackendVK {
-		//platform(win32), render(dx12)
-		virtual bool Init();
-		virtual void ShutDown();
-		virtual void NewFrame();
-		virtual void RenderDrawData();
-	};
-	*/
-
-	struct FrameResource {
-
+	private:
+		HWND m_window;
+		ID3D12DescriptorHeap*	m_pSrvDescHeap = nullptr;
+		ID3D12DescriptorHeap*	m_pRtvDescHeap = nullptr;
+		ID3D12GraphicsCommandList* m_pCommandList = nullptr;
 	};
 
 	//frame inspector, memory inspector, process inspector(?)
-	/*referenece:
-	* https://github.com/dfeneyrou/palanteer
-	*/
-	class GPCHUD {
+/*referenece:
+* https://github.com/dfeneyrou/palanteer
+*/
+	class GPCD3D12HUD {
 	public:
-		GPCHUD() {
-			m_backend = std::make_unique<GPCHUDBackendDX12>();
-			OnInit();
-		};
-		~GPCHUD() {
+		GPCD3D12HUD() {};
+		~GPCD3D12HUD() {
 			OnDestory();
 		};
 
-		virtual void OnInit();
-		virtual void OnRender();
-		virtual void OnUpdate();
-		virtual void OnDestory();
+		bool OnInit();
+		void OnUpdate();
+		void OnRender();
+		void OnDestory();
 
 	private:
-		//bool m_bInitialized = false;
-		HWND m_window;
-		std::unique_ptr<FrameResource> m_frameResource;
-		std::unique_ptr<GPCHUDBackendDX12> m_backend = nullptr;
+		bool m_initialized = false;
+		GPCD3D12HUDBackend* m_pHUDBackend = nullptr;
+		DXGI_QUERY_VIDEO_MEMORY_INFO m_vidMemInfo;
+	};
+
+	class GPCHUDManager : public GPCSingleton<GPCHUDManager> {
+	public:
+		GPCD3D12HUD* GetD3D12HUD() {
+			if (m_pD3D12HUD == nullptr)
+				m_pD3D12HUD = new GPCD3D12HUD();
+			return m_pD3D12HUD;
+		}
+
+	private:
+		GPCD3D12HUD* m_pD3D12HUD = nullptr;
 	};
 }

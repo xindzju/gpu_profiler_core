@@ -1,14 +1,12 @@
 #pragma once
 
 //core
-#include "core/gpc_inspector.h"
-#include "core/gpc_analyzer.h"
-#include "core/gpc_optimizer.h"
 #include "core/gpc_struct.h"
 #include "core/gpc_defines.h"
-#include "core/gpc_hud.h"
 #include "core/gpc_process_manager.h"
-#include "core/gpc_object_tracker.h"
+#include "core/tracker/gpc_object_tracker.h"
+#include "core/tracker/gpc_swapchain_tracker.h"
+#include "core/tracker/gpc_device_tracker.h"
 
 //hook
 #include "hook/gpc_hook_defines.h"

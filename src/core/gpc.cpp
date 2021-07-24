@@ -11,11 +11,10 @@ namespace gpc {
 		std::cout << "Create GPU Profiler Core: " << utils::GetProcessName() << std::endl;
 		if (m_processManager->GetProcessName().compare("gpu_profiler.exe") == 0)
 			InitSharedMemory();
-		m_processManager = std::make_unique<GPCProcessManager>();
+		m_processManager = new GPCProcessManager();
 		std::string processName = m_processManager->GetProcessName();
 		if (m_processManager->IsValidProcess(processName)) {
-			m_hookManager = std::make_unique<GPCHookManager>();
-			m_inspectorManager = std::make_unique<GPCInpectorManager>();
+			m_hookManager = new GPCHookManager();
 		}
 	}
 

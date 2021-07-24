@@ -1,9 +1,19 @@
 #pragma once
-#include "gpc_utils.h"
+#include "utils/gpc_utils.h"
+#include "core/tracker/gpc_swapchain_tracker.h"
 
 namespace gpc {
-	class GPCInspector {
+	//forward declarations
+	class GPCInpectorManager; //manage GPCFrameInspector and GPCMemoryInspector
+	class GPCInspector; //interfaces
+	class GPCFrameInspector;
+	class GPCMemoryInspector;
+	class GPCFPSInspector; //member of GPCFrameInspector
 
+	class GPCInspector {
+	public:
+		virtual void OnFrameStart() = 0;
+		virtual void OnFrameEnd() = 0;
 	};
 
 	//fps inspector
@@ -24,7 +34,7 @@ namespace gpc {
 			m_fpsLog.close();
 		}
 
-		void OnFrameEnd() {
+		virtual void OnFrameEnd() {
 			LARGE_INTEGER stop;
 			QueryPerformanceCounter(&stop);
 			auto frametimeMS = (stop.QuadPart - m_frameStartTime) * m_invFreq / 1e6;
@@ -32,7 +42,7 @@ namespace gpc {
 			m_fpsLog << frametimeMS << "," << fps << "\n";
 		}
 
-		void OnFrameStart() {
+		virtual void OnFrameStart() {
 			LARGE_INTEGER time;
 			QueryPerformanceCounter(&time);
 			m_frameStartTime = time.QuadPart;
@@ -44,48 +54,77 @@ namespace gpc {
 		double                  m_invFreq = 1.0;
 	};
 
-	//resource inspector
-	class GPCResourceInspector : public GPCInspector {
-
-	};
-
-    //memory inspector
-	class GPCMemoryInspector : public GPCInspector {
-		//both sysmem and vidmem
-	};
-
 	//frame source inspector
 	class GPCFrameInspector : public GPCInspector {
 	public:
-		GPCFrameInspector() {
-			m_fpsInspector = std::make_unique<GPCFPSInspector>();
-			m_resourceInspector = std::make_unique<GPCResourceInspector>();
-			m_memoryInspector = std::make_unique<GPCMemoryInspector>();
-		};
+		GPCFrameInspector() {};
 		~GPCFrameInspector() {};
 
-		//after present
-		void OnFrameStart() {
+		//after present: frame start entry
+		virtual void OnFrameStart() {
+			if (m_fpsInspector == nullptr)
+				m_fpsInspector = new GPCFPSInspector();
 			m_fpsInspector->OnFrameStart();
+
+			auto pSwapChainTracker = GPCDXGISwapChainTrackerManager::GetSingleton()->GetSwapChainTracker();
+			pSwapChainTracker->OnFrameStart();
 		}
 
-		//before present
-		void OnFrameEnd() {
+		//before present: frame end entry
+		virtual void OnFrameEnd() {
+			if (m_fpsInspector == nullptr)
+				m_fpsInspector = new GPCFPSInspector();
 			m_fpsInspector->OnFrameEnd();
+
+			auto pSwapChainTracker = GPCDXGISwapChainTrackerManager::GetSingleton()->GetSwapChainTracker();
+			pSwapChainTracker->OnFrameEnd();
 		}
 
-		std::unique_ptr<GPCFPSInspector> m_fpsInspector;
-		std::unique_ptr<GPCResourceInspector> m_resourceInspector;
-		std::unique_ptr<GPCMemoryInspector> m_memoryInspector;
+		GPCFPSInspector* m_fpsInspector = nullptr;
 	};
 
-	class GPCInpectorManager {
+	//memory inspector
+	class GPCMemoryInspector : public GPCInspector {
 	public:
-		GPCInpectorManager() {
-			m_frameInspector = std::make_unique<GPCFrameInspector>();
+		GPCMemoryInspector() {}
+		~GPCMemoryInspector() {}
+
+		virtual void OnFrameStart() {
+
 		}
+		virtual void OnFrameEnd() {
+
+		}
+
+		DXGI_QUERY_VIDEO_MEMORY_INFO GetVidMemInfo() {
+			auto pAdaptor = GPCDXGISwapChainTrackerManager::GetSingleton()->GetSwapChainTracker()->GetDXGIAdaptor();
+			pAdaptor->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &m_vidMemInfo);
+			return m_vidMemInfo;
+		}
+
+	private:
+		DXGI_QUERY_VIDEO_MEMORY_INFO m_vidMemInfo;
+	};
+
+	class GPCInpectorManager : public GPCSingleton<GPCInpectorManager> {
+	public:
+		GPCInpectorManager() {}
 		~GPCInpectorManager() {}
 
-		std::unique_ptr<GPCFrameInspector> m_frameInspector;
+		GPCFrameInspector* GetFrameInspector() {
+			if (m_frameInspector == nullptr)
+				m_frameInspector = new GPCFrameInspector();
+			return m_frameInspector;
+		}
+
+		GPCMemoryInspector* GetMemoryInspector() {
+			if (m_memoryInspector == nullptr)
+				m_memoryInspector = new GPCMemoryInspector();
+			return m_memoryInspector;
+		}
+
+	private:
+		GPCFrameInspector* m_frameInspector = nullptr;
+		GPCMemoryInspector* m_memoryInspector = nullptr;
 	};
 }

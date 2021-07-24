@@ -24,9 +24,9 @@ namespace gpc {
         bool SetUpGPC(HMODULE hModule);
         void TearDownGPC();
 
-        std::unique_ptr<GPCProcessManager> m_processManager; 
-        std::unique_ptr<GPCHookManager> m_hookManager; //set hook by each application for low overhead(deffer hook)
-        std::unique_ptr<GPCInpectorManager> m_inspectorManager;
+        GPCProcessManager* m_processManager; 
+        GPCHookManager* m_hookManager; //set hook by each application for low overhead(deffer hook)
+
     private:
         void InitSharedMemory() {
             std::cout << "Init dll shared memory" << std::endl;
