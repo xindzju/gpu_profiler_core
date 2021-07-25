@@ -44,8 +44,13 @@ namespace gpc {
 		void GPC_ImplDX12_RenderDrawData() {}
 		void GPC_ImplDX12_Shutdown() {}
 
+	protected:
+		HWND GetSwapChainOutputWindow(IDXGISwapChain* pSwapChain);
+
 	private:
-		HWND m_window;
+		HWND m_window = nullptr;
+		IDXGISwapChain* m_pSwapChain;
+		ID3D12Device* m_pD3D12Device;
 		ID3D12DescriptorHeap*	m_pSrvDescHeap = nullptr;
 		ID3D12DescriptorHeap*	m_pRtvDescHeap = nullptr;
 		ID3D12GraphicsCommandList* m_pCommandList = nullptr;

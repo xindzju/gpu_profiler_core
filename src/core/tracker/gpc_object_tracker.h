@@ -9,4 +9,10 @@ namespace gpc {
 		GPCObjTrakcer() {};
 		~GPCObjTrakcer() {};
 	};
+
+	//e.g. multiple objects scenario
+	template <class Key, class Value>
+	class GPCObjTrackerManager {
+
+	};
 }

@@ -10,4 +10,6 @@
 
 //#define USE_CUSTOM_BACKEND
 
-#define PRINT_MEMBER_FUNC_NAME  std::cout << typeid(*this).name() << "::" << __FUNCTION__ << std::endl;
+#ifdef _DEBUG
+#define PRINT_FUNC_NAME  std::cout /*<< typeid(*this).name() << "::"*/ << __FUNCTION__ << std::endl;
+#endif

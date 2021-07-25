@@ -48,11 +48,12 @@ namespace gpc {
 
 	bool GPCD3D12HUDBackend::Init() {
 		//Setup Dear ImGui context
+		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+		// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+		// io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
 		//Setup Dear ImGui style
 		ImGui::StyleColorsDark();
@@ -64,15 +65,8 @@ namespace gpc {
 #else
 		//Setup Platform/Renderer backends(D3D12 + Win32)
 		auto pSwapChainTracker = GPCDXGISwapChainTrackerManager::GetSingleton()->GetSwapChainTracker();
-		auto pSwapChain = pSwapChainTracker->GetSwapChain();
-		if (pSwapChain) {
-			IDXGISwapChain1* pSwapChain1 = nullptr;
-			if (SUCCEEDED(pSwapChain->QueryInterface(&pSwapChain1))) {
-				HRESULT res = pSwapChain1->GetHwnd(&m_window);
-				if (res != S_OK)
-					return false;
-			}
-		}
+		m_pSwapChain = pSwapChainTracker->GetSwapChain();
+		m_window = GetSwapChainOutputWindow(m_pSwapChain);
 		ImGui_ImplWin32_Init(m_window);
 		auto pD3D12Device = pSwapChainTracker->GetD3D12Device();
 		ImGui_ImplDX12_Init(pD3D12Device, 3, DXGI_FORMAT_R8G8B8A8_UNORM, m_pSrvDescHeap, m_pSrvDescHeap->GetCPUDescriptorHandleForHeapStart(), m_pSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
@@ -99,7 +93,7 @@ namespace gpc {
 		GPC_ImplWin32_NewFrame();
 #else
 		ImGui_ImplDX12_NewFrame();
-		ImGui_ImplWin32_NewFrame();
+		ImGui_ImplWin32_NewFrame(); //update mousepos, mousecursor etc.
 #endif
 		ImGui::NewFrame();
 		return;
@@ -115,6 +109,16 @@ namespace gpc {
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_pCommandList);
 #endif
 		return;
+	}
+
+	HWND GPCD3D12HUDBackend::GetSwapChainOutputWindow(IDXGISwapChain* pSwapChain) {
+		if (pSwapChain) {
+			IDXGISwapChain1* pSwapChain1 = nullptr;
+			if (SUCCEEDED(pSwapChain->QueryInterface(&pSwapChain1))) {
+				HRESULT res = pSwapChain1->GetHwnd(&m_window);
+				return m_window;
+			}
+		}
 	}
 }
 

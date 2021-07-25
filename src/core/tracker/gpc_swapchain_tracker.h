@@ -5,11 +5,15 @@ namespace gpc {
 #pragma region GPCDXGISwapChainTracker
 	class GPCDXGISwapChainTracker : public GPCObjTrakcer {
 	public:
-		GPCDXGISwapChainTracker();
-		~GPCDXGISwapChainTracker();
-
-		bool Init(IDXGISwapChain* pSwapChain) {
+		GPCDXGISwapChainTracker() {}
+		~GPCDXGISwapChainTracker() {}
+		
+		bool Init(IDXGISwapChain* pSwapChain = nullptr, IUnknown* pD3D12Device = nullptr) {
 			m_pSwapChain = pSwapChain;
+			pD3D12Device->QueryInterface(&m_pD3D12Device);
+			if (m_pD3D12Device) {
+				m_pD3D12Device->Release(); //Why?
+			}
 			return true;
 		}
 

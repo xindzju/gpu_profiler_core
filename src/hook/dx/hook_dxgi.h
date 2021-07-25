@@ -33,9 +33,11 @@
 namespace gpc {
 	bool HookDXGIEntry(const char* dllName);
 	//dxgi 1~7
+	bool HookDXGIFactory(IDXGIFactory* pIDXGIFactory); //all dxgifactory interfaces hook entries
 	bool HookDXGIFactoryInterface(IDXGIFactory* pIDXGIFactory);
 	bool HookDXGIFactory2Interface(IDXGIFactory2* pIDXGIFactory2);
 	//swap chain 1~4
+	bool HookIDXGISwapChain(IDXGISwapChain* pSwapChain = nullptr, IUnknown* pD3D12Device = nullptr); //all swapchain interfaces hook entries
 	bool HookDXGISwapChainInterface(IDXGISwapChain* pIDXGISwapChain);
 	bool HookDXGISwapChain1Interface(IDXGISwapChain1* pIDXGISwapChain1);
 	
