@@ -1,6 +1,9 @@
 #pragma once
 #include "utils/gpc_utils.h"
-#include "core/tracker/gpc_swapchain_tracker.h"
+#include "core/tracker/gpc_swapchain_tracker.h" 
+#include "core/gpc.h" 
+
+extern std::unique_ptr<gpc::GPUProfilerCore> g_GPUProfilerCore;
 
 namespace gpc {
 	//forward declarations
@@ -12,8 +15,8 @@ namespace gpc {
 
 	class GPCInspector {
 	public:
-		virtual void OnFrameStart() = 0;
-		virtual void OnFrameEnd() = 0;
+		virtual void StartFrame() = 0;
+		virtual void EndFrame() = 0;
 	};
 
 	//fps inspector
@@ -34,24 +37,35 @@ namespace gpc {
 			m_fpsLog.close();
 		}
 
-		virtual void OnFrameEnd() {
+		virtual void StartFrame() {
+			LARGE_INTEGER time;
+			QueryPerformanceCounter(&time);
+			m_frameStartTime = time.QuadPart;
+		}
+
+		virtual void EndFrame() {
 			LARGE_INTEGER stop;
 			QueryPerformanceCounter(&stop);
 			auto frametimeMS = (stop.QuadPart - m_frameStartTime) * m_invFreq / 1e6;
 			auto fps = int(1 / frametimeMS);
 			m_fpsLog << frametimeMS << "," << fps << "\n";
 		}
-
-		virtual void OnFrameStart() {
-			LARGE_INTEGER time;
-			QueryPerformanceCounter(&time);
-			m_frameStartTime = time.QuadPart;
-		}
-
 	private:
 		std::ofstream           m_fpsLog;
 		uint64_t                m_frameStartTime = 0;
 		double                  m_invFreq = 1.0;
+	};
+
+	struct GPCFrameState {
+		int m_iFrameIndex;
+	};
+
+	struct GPCProfileState {
+		bool m_bProfile;
+	};
+
+	struct GPCGlobalData {
+
 	};
 
 	//frame source inspector
@@ -61,23 +75,25 @@ namespace gpc {
 		~GPCFrameInspector() {};
 
 		//after present: frame start entry
-		virtual void OnFrameStart() {
+		virtual void StartFrame() {
 			if (m_fpsInspector == nullptr)
 				m_fpsInspector = new GPCFPSInspector();
-			m_fpsInspector->OnFrameStart();
+			m_fpsInspector->StartFrame();
 
-			auto pSwapChainTracker = GPCDXGISwapChainTrackerManager::GetSingleton()->GetSwapChainTracker();
-			pSwapChainTracker->OnFrameStart();
+			GPCDXGISwapChainTracker::GetSingleton()->OnFrameStart();
+			g_GPUProfilerCore->OnProfileStart();
 		}
 
 		//before present: frame end entry
-		virtual void OnFrameEnd() {
+		virtual void EndFrame() {
 			if (m_fpsInspector == nullptr)
 				m_fpsInspector = new GPCFPSInspector();
-			m_fpsInspector->OnFrameEnd();
+			m_fpsInspector->EndFrame();
 
-			auto pSwapChainTracker = GPCDXGISwapChainTrackerManager::GetSingleton()->GetSwapChainTracker();
-			pSwapChainTracker->OnFrameEnd();
+			GPCDXGISwapChainTracker::GetSingleton()->OnFrameEnd();
+			g_GPUProfilerCore->OnProfileEnd();
+			//frame state controller, communicate with client
+			//shared memory or using ocat methodology
 		}
 
 		GPCFPSInspector* m_fpsInspector = nullptr;
@@ -89,15 +105,15 @@ namespace gpc {
 		GPCMemoryInspector() {}
 		~GPCMemoryInspector() {}
 
-		virtual void OnFrameStart() {
+		virtual void StartFrame() {
 
 		}
-		virtual void OnFrameEnd() {
+		virtual void EndFrame() {
 
 		}
 
 		DXGI_QUERY_VIDEO_MEMORY_INFO GetVidMemInfo() {
-			auto pAdaptor = GPCDXGISwapChainTrackerManager::GetSingleton()->GetSwapChainTracker()->GetDXGIAdaptor();
+			auto pAdaptor = GPCDXGISwapChainTracker::GetSingleton()->GetDXGIAdaptor();
 			pAdaptor->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &m_vidMemInfo);
 			return m_vidMemInfo;
 		}

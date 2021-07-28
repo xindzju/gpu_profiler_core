@@ -24,6 +24,9 @@ namespace gpc {
         bool SetUpGPC(HMODULE hModule);
         void TearDownGPC();
 
+        void OnProfileStart() {};
+        void OnProfileEnd() {};
+
         GPCProcessManager* m_processManager; 
         GPCHookManager* m_hookManager; //set hook by each application for low overhead(deffer hook)
 
@@ -39,4 +42,4 @@ namespace gpc {
     };
 }
 
-extern std::unique_ptr<gpc::GPUProfilerCore> g_GPUProfilerCore; //each injected process has it's own instance
+extern std::unique_ptr<gpc::GPUProfilerCore> g_GPUProfilerCore; 

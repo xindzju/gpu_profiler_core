@@ -64,7 +64,7 @@ namespace gpc {
 		GPC_ImplDX12_Init();
 #else
 		//Setup Platform/Renderer backends(D3D12 + Win32)
-		auto pSwapChainTracker = GPCDXGISwapChainTrackerManager::GetSingleton()->GetSwapChainTracker();
+		auto pSwapChainTracker = GPCDXGISwapChainTracker::GetSingleton();
 		m_pSwapChain = pSwapChainTracker->GetSwapChain();
 		m_window = GetSwapChainOutputWindow(m_pSwapChain);
 		ImGui_ImplWin32_Init(m_window);

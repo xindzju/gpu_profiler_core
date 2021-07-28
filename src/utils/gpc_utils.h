@@ -29,15 +29,13 @@ namespace gpc {
     public:
         static T* GetSingleton()
         {
+			static T* s_pSingleton = nullptr; 
             if (!s_pSingleton)
             {
-                if (!s_pSingleton)
-                    s_pSingleton = new T();
+                s_pSingleton = new T();
             }
             return s_pSingleton;
         }
-    protected:
-        static inline T* s_pSingleton = nullptr;
     };
 
     struct GPCReadWriteLock {

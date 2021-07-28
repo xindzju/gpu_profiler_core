@@ -12,6 +12,9 @@ namespace gpc {
 			return true;
 		}
 
+		virtual void OnFrameStart() {};
+		virtual void OnFrameEnd() {};
+
 	private:
 		ID3D12Device* m_pD3D12Device = nullptr;
     };

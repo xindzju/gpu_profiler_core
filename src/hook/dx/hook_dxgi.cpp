@@ -114,8 +114,8 @@ namespace gpc {
         }
 
         //create GPCSwapChainTracker
-        auto pSwapChainTracker = GPCDXGISwapChainTrackerManager::GetSingleton()->GetSwapChainTracker();
-        pSwapChainTracker->Init(pSwapChain, pD3D12Device);
+        auto pSwapChainTracker = GPCDXGISwapChainTracker::GetSingleton();
+        pSwapChainTracker->SetSwapChain(pSwapChain, pD3D12Device);
         return true;
     }
 
@@ -573,7 +573,7 @@ namespace gpc {
             /* [in] */ UINT Flags) {
             PRINT_FUNC_NAME
             auto pFrameInspector = GPCInpectorManager::GetSingleton()->GetFrameInspector();
-            pFrameInspector->OnFrameEnd();
+            pFrameInspector->EndFrame();
             return;
         }
 
@@ -583,7 +583,7 @@ namespace gpc {
             /* [in] */ UINT Flags) {
             PRINT_FUNC_NAME
             auto pFrameInspector = GPCInpectorManager::GetSingleton()->GetFrameInspector();
-            pFrameInspector->OnFrameStart();
+            pFrameInspector->StartFrame();
             return;
         }
 #pragma endregion
@@ -620,7 +620,7 @@ namespace gpc {
             _In_  const DXGI_PRESENT_PARAMETERS* pPresentParameters) {
             PRINT_FUNC_NAME
             auto pFrameInspector = GPCInpectorManager::GetSingleton()->GetFrameInspector();
-            pFrameInspector->OnFrameEnd();
+            pFrameInspector->EndFrame();
             return;
         }
         void STDMETHODCALLTYPE Post_IDXGISwapChain1_Present1(
@@ -631,7 +631,7 @@ namespace gpc {
             _In_  const DXGI_PRESENT_PARAMETERS* pPresentParameters) {
             PRINT_FUNC_NAME
             auto pFrameInspector = GPCInpectorManager::GetSingleton()->GetFrameInspector();
-            pFrameInspector->OnFrameStart();
+            pFrameInspector->StartFrame();
             return;
         }
 #pragma endregion

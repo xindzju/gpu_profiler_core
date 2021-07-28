@@ -8,11 +8,8 @@ namespace gpc {
 	public:
 		GPCObjTrakcer() {};
 		~GPCObjTrakcer() {};
-	};
 
-	//e.g. multiple objects scenario
-	template <class Key, class Value>
-	class GPCObjTrackerManager {
-
+		virtual void OnFrameStart() = 0;
+		virtual void OnFrameEnd() = 0;
 	};
 }
