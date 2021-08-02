@@ -38,7 +38,7 @@ namespace gpc {
 		bool HookD3D12(const char* dllName = "d3d12.dll"); //D3D12CreateDevice
 		bool HookCUDA(const char* dllName = "");
 		bool HookVK(const char* dllName = "");
-		bool HookOGL(const char* dllName = "");
+		bool HookOGL(const char* dllName = "opengl32.dll");
 		bool HookSys();
 
 	private:

@@ -58,14 +58,13 @@ namespace gpc {
 		return res;
 	}
 
-	bool GPCHookManager::HookVK(const char* pModule) {
+	bool GPCHookManager::HookVK(const char* dllName) {
 		bool res = true;
 		return res;
 	}
 
-	bool GPCHookManager::HookOGL(const char* pModule) {
-		bool res = true;
-		return res;
+	bool GPCHookManager::HookOGL(const char* dllName) {
+		return HookOGLEntry(dllName);
 	}
 
 	void GPCHookManager::LoadAPIHookInfos(fs::path vtablePath) {

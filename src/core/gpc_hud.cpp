@@ -3,7 +3,6 @@
 #include "core/gpc_inspector.h"
 
 namespace gpc {
-
 	bool GPCD3D12HUD::OnInit() {
 		if (m_pHUDBackend == nullptr)
 			m_pHUDBackend = new GPCD3D12HUDBackend();
@@ -46,7 +45,28 @@ namespace gpc {
 		return;
 	}
 
+#pragma region GPCD3D12HUDBackend
+	bool GPCD3D12HUDBackend::m_bShowOverlay = true;
+	WNDPROC GPCD3D12HUDBackend::m_pRealMsgProc = nullptr;
+
 	bool GPCD3D12HUDBackend::Init() {
+		//get SwapChain, Device, Window
+		auto pSwapChainTracker = GPCDXGISwapChainTracker::GetSingleton();
+		m_pSwapChain = pSwapChainTracker->GetSwapChain();
+		m_pD3D12Device = pSwapChainTracker->GetD3D12Device();
+		m_window = GetSwapChainOutputWindow(m_pSwapChain);
+
+		m_pRealMsgProc = (WNDPROC)GetWindowLongPtr(m_window, GWLP_WNDPROC);
+		if (m_pRealMsgProc)
+		{
+			SetWindowLongPtr(m_window, GWLP_WNDPROC, (LONG_PTR)GPC_WndProc);
+		}
+		else
+		{
+			std::cout << "Init platform backend failed" << std::endl;
+			return false;
+		}
+
 		//Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -64,12 +84,8 @@ namespace gpc {
 		GPC_ImplDX12_Init();
 #else
 		//Setup Platform/Renderer backends(D3D12 + Win32)
-		auto pSwapChainTracker = GPCDXGISwapChainTracker::GetSingleton();
-		m_pSwapChain = pSwapChainTracker->GetSwapChain();
-		m_window = GetSwapChainOutputWindow(m_pSwapChain);
 		ImGui_ImplWin32_Init(m_window);
-		auto pD3D12Device = pSwapChainTracker->GetD3D12Device();
-		ImGui_ImplDX12_Init(pD3D12Device, 3, DXGI_FORMAT_R8G8B8A8_UNORM, m_pSrvDescHeap, m_pSrvDescHeap->GetCPUDescriptorHandleForHeapStart(), m_pSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+		ImGui_ImplDX12_Init(m_pD3D12Device, 3, DXGI_FORMAT_R8G8B8A8_UNORM, m_pSrvDescHeap, m_pSrvDescHeap->GetCPUDescriptorHandleForHeapStart(), m_pSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
 #endif
 
 		return true; 
@@ -119,6 +135,26 @@ namespace gpc {
 				return m_window;
 			}
 		}
+	}
+#pragma endregion
+
+	// Forward declare message handler from imgui_impl_win32.cpp
+	extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	LRESULT WINAPI GPCD3D12HUDBackend::GPC_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+		// Toggle the overlay using the delete key
+		if (msg == WM_KEYDOWN && wParam == VK_DELETE) {
+			m_bShowOverlay = !m_bShowOverlay;
+			return false;
+		}
+
+		// If the overlay is shown, direct input to the overlay only
+		if (m_bShowOverlay) {
+			CallWindowProc(ImGui_ImplWin32_WndProcHandler, hWnd, msg, wParam, lParam);
+			return true;
+		}
+
+		// Otherwise call the game's wndProc function
+		return CallWindowProc(m_pRealMsgProc, hWnd, msg, wParam, lParam);
 	}
 }
 

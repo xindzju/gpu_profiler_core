@@ -110,4 +110,36 @@ namespace gpc {
 
 	const char* GetHookAPITypeStr(HOOK_API_TYPE hookType);
 	const char* GetHookPosStr(GPC_HOOK_POS hookPos);
+
+	//trampoline
+	namespace mem {
+		template<typename T>
+		T read(DWORD64 addr) {
+			return *((T*)addr);
+		}
+
+		template<typename T>
+		void write(DWORD64 addr, T value) {
+			*((T*)addr) = value;
+		}
+
+		template<typename T>
+		DWORD64 protect(DWORD64 addr, DWORD protection) {
+			DWORD oldProtection;
+			VirtualProtect((LPVOID)addr, sizeof(T), protection, &oldProtection);
+
+			return oldProtection;
+		}
+
+		DWORD64 hookFunction(DWORD64 hookAt, DWORD64 newFunc, unsigned int size) {
+			DWORD64 newOffset = newFunc - hookAt - 5;   // -5 since the jump is relative to the next instruction
+			auto oldProtection = mem::protect<DWORD[3]>(hookAt + 1, PAGE_EXECUTE_READWRITE);
+			mem::write<BYTE>(hookAt, 0xE9);          // Opcode of the jmp instruction
+			mem::write<DWORD>(hookAt + 1, newOffset);
+			for (unsigned int i = 5; i < size; i++) // nop extra bytes to avoid corrupting the overwritten opcode
+				mem::write<BYTE>(hookAt + i, 0x90);
+			mem::protect<DWORD[3]>(hookAt + 1, oldProtection);
+			return hookAt + 5;
+		}
+	}
 }

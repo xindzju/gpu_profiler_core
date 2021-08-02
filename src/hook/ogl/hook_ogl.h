@@ -1,5 +1,5 @@
 #pragma once
 
 namespace gpc {
-	bool HookOGL(const char* dllName = "");
+	bool HookOGLEntry(const char* dllName);
 }
