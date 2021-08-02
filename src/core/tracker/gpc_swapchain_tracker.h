@@ -26,9 +26,11 @@ namespace gpc {
 		void OnFrameEnd(); 
 
 	private:
+		//IDXGIAdaptor: represents a display subsystem(including one or more GPUs, DACs and video memory)
 		IDXGIAdapter3*		m_pAdaptor = nullptr;	//QueryVideoMemoryInfo
 		IDXGISwapChain*		m_pSwapChain = nullptr;
 		ID3D12Device*		m_pD3D12Device = nullptr;
+		ID3D12CommandQueue* m_pD3D12CommandQueue = nullptr;
 	};
 #pragma endregion
 }
