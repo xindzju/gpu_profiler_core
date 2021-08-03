@@ -111,6 +111,7 @@ namespace gpc {
 	const char* GetHookAPITypeStr(HOOK_API_TYPE hookType);
 	const char* GetHookPosStr(GPC_HOOK_POS hookPos);
 
+	/*
 	//trampoline
 	namespace mem {
 		template<typename T>
@@ -142,4 +143,5 @@ namespace gpc {
 			return hookAt + 5;
 		}
 	}
+	*/
 }

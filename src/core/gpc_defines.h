@@ -12,4 +12,6 @@
 
 #ifdef _DEBUG
 #define PRINT_FUNC_NAME  std::cout /*<< typeid(*this).name() << "::"*/ << __FUNCTION__ << std::endl;
+#else
+#define PRINT_FUNC_NAME
 #endif

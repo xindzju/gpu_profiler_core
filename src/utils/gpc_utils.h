@@ -3,6 +3,9 @@
 #include <string>
 #include <map>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
+#include <list>
 #include <vector>
 #include <fstream>
 #include <sstream>
@@ -54,4 +57,10 @@ namespace gpc {
 	namespace profile {
 		//func profiling
 	}
+
+    template<typename T>
+    inline T GetAlignedInteger(T size, T alignment)
+    {
+        return  alignment * ((size - 1) / alignment + 1); // (size + (alignment - 1)) & ~(alignment - 1);
+    }
 }

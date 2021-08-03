@@ -7,5 +7,6 @@ namespace gpc {
         if (module) {
             void* pFuncAddress = GetProcAddress(module, "wglSwapBuffers");
         }
+        return true;
     }
 }

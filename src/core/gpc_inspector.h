@@ -7,7 +7,7 @@ extern std::unique_ptr<gpc::GPUProfilerCore> g_GPUProfilerCore;
 
 namespace gpc {
 	//forward declarations
-	class GPCInpectorManager; //manage GPCFrameInspector and GPCMemoryInspector
+	class GPCInspectorManager; //manage GPCFrameInspector and GPCMemoryInspector
 	class GPCInspector; //interfaces
 	class GPCFrameInspector;
 	class GPCMemoryInspector;
@@ -113,8 +113,8 @@ namespace gpc {
 		}
 
 		DXGI_QUERY_VIDEO_MEMORY_INFO GetVidMemInfo() {
-			auto pAdaptor = GPCDXGISwapChainTracker::GetSingleton()->GetDXGIAdaptor();
-			pAdaptor->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &m_vidMemInfo);
+			auto pAdapter = GPCDXGISwapChainTracker::GetSingleton()->GetDXGIAdapter();
+			pAdapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &m_vidMemInfo);
 			return m_vidMemInfo;
 		}
 
@@ -122,10 +122,10 @@ namespace gpc {
 		DXGI_QUERY_VIDEO_MEMORY_INFO m_vidMemInfo;
 	};
 
-	class GPCInpectorManager : public GPCSingleton<GPCInpectorManager> {
+	class GPCInspectorManager : public GPCSingleton<GPCInspectorManager> {
 	public:
-		GPCInpectorManager() {}
-		~GPCInpectorManager() {}
+		GPCInspectorManager() {}
+		~GPCInspectorManager() {}
 
 		GPCFrameInspector* GetFrameInspector() {
 			if (m_frameInspector == nullptr)

@@ -12,7 +12,7 @@ namespace gpc {
 		PRINT_FUNC_NAME
 		//game overlay
 		auto pD3D12HUD = GPCHUDManager::GetSingleton()->GetD3D12HUD();
-		//pD3D12HUD->OnRender();
+		pD3D12HUD->OnRender();
 	}
 #pragma endregion
 }

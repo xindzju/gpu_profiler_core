@@ -115,7 +115,7 @@ namespace gpc {
 
         //create GPCSwapChainTracker
         auto pSwapChainTracker = GPCDXGISwapChainTracker::GetSingleton();
-        pSwapChainTracker->SetSwapChain(pSwapChain, pD3D12Device);
+        pSwapChainTracker->Init(pSwapChain, pD3D12Device);
         return true;
     }
 
@@ -572,7 +572,7 @@ namespace gpc {
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT Flags) {
             PRINT_FUNC_NAME
-            auto pFrameInspector = GPCInpectorManager::GetSingleton()->GetFrameInspector();
+            auto pFrameInspector = GPCInspectorManager::GetSingleton()->GetFrameInspector();
             pFrameInspector->EndFrame();
             return;
         }
@@ -582,7 +582,7 @@ namespace gpc {
             /* [in] */ UINT SyncInterval,
             /* [in] */ UINT Flags) {
             PRINT_FUNC_NAME
-            auto pFrameInspector = GPCInpectorManager::GetSingleton()->GetFrameInspector();
+            auto pFrameInspector = GPCInspectorManager::GetSingleton()->GetFrameInspector();
             pFrameInspector->StartFrame();
             return;
         }
@@ -619,7 +619,7 @@ namespace gpc {
             /* [annotation][in] */
             _In_  const DXGI_PRESENT_PARAMETERS* pPresentParameters) {
             PRINT_FUNC_NAME
-            auto pFrameInspector = GPCInpectorManager::GetSingleton()->GetFrameInspector();
+            auto pFrameInspector = GPCInspectorManager::GetSingleton()->GetFrameInspector();
             pFrameInspector->EndFrame();
             return;
         }
@@ -630,7 +630,7 @@ namespace gpc {
             /* [annotation][in] */
             _In_  const DXGI_PRESENT_PARAMETERS* pPresentParameters) {
             PRINT_FUNC_NAME
-            auto pFrameInspector = GPCInpectorManager::GetSingleton()->GetFrameInspector();
+            auto pFrameInspector = GPCInspectorManager::GetSingleton()->GetFrameInspector();
             pFrameInspector->StartFrame();
             return;
         }

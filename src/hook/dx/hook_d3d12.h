@@ -9,6 +9,7 @@
 
 namespace gpc {
     bool HookD3D12Entry(const char* dllName);
+    //hook all the D3D12 related APIs 
     bool HookD3D12DeviceInterface(ID3D12Device* pDevice); //many different interfaces(9)
     
     //hook device
