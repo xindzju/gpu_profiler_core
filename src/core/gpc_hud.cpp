@@ -6,12 +6,6 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace gpc {
-	struct FrameContext
-	{
-		ID3D12CommandAllocator* CommandAllocator;
-		UINT64                  FenceValue;
-	};
-
 	// Data
 	static int const                    NUM_FRAMES_IN_FLIGHT = 3;
 	static FrameContext                 g_frameContext[NUM_FRAMES_IN_FLIGHT] = {};
@@ -27,7 +21,7 @@ namespace gpc {
 	static HANDLE                       g_fenceEvent = NULL;
 	static UINT64                       g_fenceLastSignaledValue = 0;
 	//static IDXGISwapChain3* g_pSwapChain = NULL;
-	//static HANDLE                       g_hSwapChainWaitableObject = NULL;
+	static HANDLE                       g_hSwapChainWaitableObject = NULL;
 	static ID3D12Resource* g_mainRenderTargetResource[NUM_BACK_BUFFERS] = {};
 	static D3D12_CPU_DESCRIPTOR_HANDLE  g_mainRenderTargetDescriptor[NUM_BACK_BUFFERS] = {};
 
@@ -67,13 +61,17 @@ namespace gpc {
 
 		//Cutomize Overlay layout
 		{
-			ImGui::Begin("GPU Profiler Overlay");                        
+			ImGui::Begin("GPU Profiler Overlay"); 
+			ImGui::SetWindowSize(ImVec2(400, 800), ImGuiCond_Always);
 			ImGui::Text("Hello World");
+			static bool bShowCheckbox = true;
+			ImGui::Checkbox("Show CheckBox", &bShowCheckbox);
 			auto pFrameInspector = GPCInspectorManager::GetSingleton()->GetFrameInspector();
 			ImGui::End();
 		}
 
 		m_pHUDBackend->RenderDrawData();
+
 		return;
 	}
 
@@ -109,10 +107,9 @@ namespace gpc {
 		//Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
-		// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		// io.ConfigFlags |= ImGuiConfigFlags_NavEnableSetMousePos;
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
 		//Setup Dear ImGui style
 		ImGui::StyleColorsDark();
@@ -126,6 +123,21 @@ namespace gpc {
 		ImGui_ImplWin32_Init(m_window);
 		ImGui_ImplDX12_Init(m_pD3D12Device, 3, DXGI_FORMAT_R8G8B8A8_UNORM, m_pSrvDescHeap, m_pSrvDescHeap->GetCPUDescriptorHandleForHeapStart(), m_pSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
 #endif
+
+		//	Load Fonts
+		// - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
+		// - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
+		// - If the file cannot be loaded, the function will return NULL. Please handle those errors in your application (e.g. use an assertion, or display an error and quit).
+		// - The fonts will be rasterized at a given size (w/ oversampling) and stored into a texture when calling ImFontAtlas::Build()/GetTexDataAsXXXX(), which ImGui_ImplXXXX_NewFrame below will call.
+		// - Read 'docs/FONTS.md' for more instructions and details.
+		// - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
+		//io.Fonts->AddFontDefault();
+		//io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf", 16.0f);
+		//io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
+		//io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf", 16.0f);
+		//io.Fonts->AddFontFromFileTTF("../../misc/fonts/ProggyTiny.ttf", 10.0f);
+		//ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
+		//IM_ASSERT(font != NULL);
 
 		return true; 
 	}
@@ -155,14 +167,41 @@ namespace gpc {
 	}
 
 	void GPCD3D12HUDBackend::RenderDrawData() {
-		// End of frame: render Dear ImGui
-		ImGui::Render();
+		FrameContext* nextFrameCtx = WaitForNextFrameResources(); //next frame context
+		IDXGISwapChain3* pIDXGISwapChain3 = nullptr;
+		m_pSwapChain->QueryInterface(&pIDXGISwapChain3);
+		UINT backBufferIdx = pIDXGISwapChain3->GetCurrentBackBufferIndex();
+		nextFrameCtx->CommandAllocator->Reset(); //indicates to re-use the memory that is associated with the command allocator
+
+		D3D12_RESOURCE_BARRIER barrier = {};
+		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		barrier.Transition.pResource = g_mainRenderTargetResource[backBufferIdx];
+		barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		m_pCommandList->Reset(nextFrameCtx->CommandAllocator, NULL); //resets a command list back to its initial state as if a new command list was just created
+		m_pCommandList->ResourceBarrier(1, &barrier); //notifies the driver that it needs to synchronize multiple accesses to resources
+
+		// Render Dear ImGui graphics
+		//ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+		//const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
+		//m_pCommandList->ClearRenderTargetView(g_mainRenderTargetDescriptor[backBufferIdx], clear_color_with_alpha, 0, NULL);
+		m_pCommandList->OMSetRenderTargets(1, &g_mainRenderTargetDescriptor[backBufferIdx], FALSE, NULL);
+		m_pCommandList->SetDescriptorHeaps(1, &m_pSrvDescHeap);
+		// Rendering
+		ImGui::Render(); //prepare data for rendering so you can call ImGui::GetDrawData
 
 #ifdef USE_CUSTOM_BACKEND
 		GPC_ImplDX12_RenderDrawData();
 #else
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_pCommandList);
+		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_pCommandList); //set up render state 
 #endif
+		barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+		m_pCommandList->ResourceBarrier(1, &barrier);
+		m_pCommandList->Close();
+		m_pD3D12CommandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&m_pCommandList);
 		return;
 	}
 
@@ -174,6 +213,7 @@ namespace gpc {
 				return m_window;
 			}
 		}
+		return nullptr;
 	}
 
 	bool GPCD3D12HUDBackend::CreateDeviceD3D(HWND hWnd)
@@ -291,7 +331,10 @@ namespace gpc {
 		//	swapChain1->Release();
 		//	dxgiFactory->Release();
 		//	g_pSwapChain->SetMaximumFrameLatency(NUM_BACK_BUFFERS);
-		//	g_hSwapChainWaitableObject = g_pSwapChain->GetFrameLatencyWaitableObject();
+		IDXGISwapChain2* pSwapChain2 = nullptr;
+		if (SUCCEEDED(m_pSwapChain->QueryInterface(&pSwapChain2))) {
+			g_hSwapChainWaitableObject = pSwapChain2->GetFrameLatencyWaitableObject();
+		}
 		//}
 
 		CreateRenderTarget();
@@ -309,6 +352,29 @@ namespace gpc {
 		}
 	}
 
+	FrameContext* GPCD3D12HUDBackend::WaitForNextFrameResources()
+	{
+		UINT nextFrameIndex = g_frameIndex + 1;
+		g_frameIndex = nextFrameIndex;
+
+		HANDLE waitableObjects[] = { g_hSwapChainWaitableObject, NULL }; //g_hSwapChainWaitableObject: Returns a waitable handle that signals when the DXGI adapter has finished presenting a new frame.
+		DWORD numWaitableObjects = 1;
+
+		FrameContext* frameCtx = &g_frameContext[nextFrameIndex % NUM_FRAMES_IN_FLIGHT];
+		UINT64 fenceValue = frameCtx->FenceValue;
+		if (fenceValue != 0) // means no fence was signaled
+		{
+			frameCtx->FenceValue = 0;
+			g_fence->SetEventOnCompletion(fenceValue, g_fenceEvent); //specifies an event that should be fired when the fence reaches a certain value
+			waitableObjects[1] = g_fenceEvent;
+			numWaitableObjects = 2;
+		}
+
+		WaitForMultipleObjects(numWaitableObjects, waitableObjects, TRUE, INFINITE);
+
+		return frameCtx;
+	}
+
 #pragma endregion
 	static LRESULT WINAPI GPC_WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		// Toggle the overlay using the delete key
@@ -320,11 +386,12 @@ namespace gpc {
 		// If the overlay is shown, direct input to the overlay only
 		if (bShowOverlay) {
 			CallWindowProc(::ImGui_ImplWin32_WndProcHandler, hWnd, msg, wParam, lParam);
-			return true;
+			return CallWindowProc(pRealMsgProc, hWnd, msg, wParam, lParam);
 		}
-
-		// Otherwise call the game's wndProc function
-		return CallWindowProc(pRealMsgProc, hWnd, msg, wParam, lParam);
+		else {
+			// Otherwise call the game's wndProc function
+			return CallWindowProc(pRealMsgProc, hWnd, msg, wParam, lParam);
+		}
 	}
 }
 

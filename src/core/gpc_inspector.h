@@ -90,7 +90,8 @@ namespace gpc {
 				m_fpsInspector = new GPCFPSInspector();
 			m_fpsInspector->EndFrame();
 
-			GPCDXGISwapChainTracker::GetSingleton()->OnFrameEnd();
+			auto pSwapChainTracker = GPCDXGISwapChainTracker::GetSingleton();
+			pSwapChainTracker->OnFrameEnd();
 			g_GPUProfilerCore->OnProfileEnd();
 			//frame state controller, communicate with client
 			//shared memory or using ocat methodology

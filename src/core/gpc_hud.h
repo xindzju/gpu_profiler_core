@@ -14,6 +14,12 @@
 
 
 namespace gpc {
+	struct FrameContext
+	{
+		ID3D12CommandAllocator* CommandAllocator;
+		UINT64                  FenceValue;
+	};
+
 	//GPCHUDBackend, including platform backend + render backend
 	class GPCHUDBackend {
 	public:
@@ -48,11 +54,6 @@ namespace gpc {
 	protected:
 		HWND GetSwapChainOutputWindow(IDXGISwapChain* pSwapChain);
 #if 1 //using Dear ImGui default backend
-		struct FrameContext
-		{
-			ID3D12CommandAllocator* CommandAllocator;
-			UINT64                  FenceValue;
-		};
 		// Forward declarations of helper functions
 		bool CreateDeviceD3D(HWND hWnd);
 		void CleanupDeviceD3D();
@@ -60,6 +61,7 @@ namespace gpc {
 		void CleanupRenderTarget();
 		void WaitForLastSubmittedFrame();
 		FrameContext* WaitForNextFrameResources();
+
 #endif
 	private:
 		HWND m_window = nullptr;
@@ -69,15 +71,6 @@ namespace gpc {
 		ID3D12DescriptorHeap*	m_pSrvDescHeap = nullptr;
 		ID3D12DescriptorHeap*	m_pRtvDescHeap = nullptr;
 		ID3D12GraphicsCommandList* m_pCommandList = nullptr;
-	};
-
-	class GPCOpenGLHUDBackend : public GPCHUDBackend {
-	public:
-		//platform(win32), render(OpenGL)
-		virtual bool Init() {}
-		virtual void ShutDown() {}
-		virtual void NewFrame() {}
-		virtual void RenderDrawData() {}
 	};
 
 	//frame inspector, memory inspector, process inspector(?)
