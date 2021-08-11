@@ -5,6 +5,13 @@
 // Forward declare message handler from imgui_impl_win32.cpp
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+static void TextFocused(const char* label, const char* value)
+{
+	ImGui::TextColored(ImVec4{ 1, 0.5, 0.5, 1 }, label);
+	ImGui::SameLine();
+	ImGui::TextUnformatted(value);
+}
+
 namespace gpc {
 	// Data
 	static int const                    NUM_FRAMES_IN_FLIGHT = 3;
@@ -36,10 +43,70 @@ namespace gpc {
 		return true;
 	}
 
+	void ShowDemo_RealtimePlots() {
+		ImGui::BulletText("Move your mouse to change the data!");
+		ImGui::BulletText("This example assumes 60 FPS. Higher FPS requires larger buffer size.");
+		static ScrollingBuffer sdata1, sdata2;
+		ImVec2 mouse = ImGui::GetMousePos();
+		static float t = 0;
+		t += ImGui::GetIO().DeltaTime;
+		sdata1.AddPoint(t, mouse.x * 0.0005f);
+		sdata2.AddPoint(t, mouse.y * 0.0005f);
+
+		static float history = 10.0f;
+		ImGui::SliderFloat("History", &history, 1, 30, "%.1f s");
+
+		static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
+		//ImPlot::SetNextPlotLimitsX(t - history, t, ImGuiCond_Always);
+		//ImPlot::SetNextPlotLimitsY(0, 1);
+		if (ImPlot::BeginPlot("##Scrolling", NULL, NULL, ImVec2(-1, 150), 0, flags, flags)) {
+			ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+			ImPlot::PlotShaded("Mouse X", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), -INFINITY, sdata1.Offset, 2 * sizeof(float));
+			ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), sdata2.Offset, 2 * sizeof(float));
+			ImPlot::EndPlot();
+		}
+	}
+
+	//update overlay layout and related real-time data
 	void GPCD3D12HUD::OnUpdate() {
-		//update memory info
+		//update overlay data
 		auto pMemInspector = GPCInspectorManager::GetSingleton()->GetMemoryInspector();
 		m_vidMemInfo = pMemInspector->GetVidMemInfo();
+		
+		auto pFrameInspector = GPCInspectorManager::GetSingleton()->GetFrameInspector();
+		float totalInjectedTime = pFrameInspector->m_fpsInspector->GetTotalInjectedTime();
+		float lastFPS = pFrameInspector->m_fpsInspector->GetLastFPS();
+		float fpsLimit = 200;
+		if (lastFPS > fpsLimit)
+			lastFPS = fpsLimit;
+		m_fpsScrollingBuffer.AddPoint(totalInjectedTime, lastFPS);
+		std::cout << "fps data: " << totalInjectedTime << "\t" << lastFPS << std::endl;
+		//update overlay layout
+		ImGui::Begin("GPU Profiler Overlay"/*, nullptr, ImGuiWindowFlags_AlwaysAutoResize*/);
+		if (ImGui::TreeNodeEx("Hardware Info", ImGuiTreeNodeFlags_DefaultOpen)) {
+			TextFocused("CPU Name: ", "");
+			TextFocused("GPU Name: ", "");
+			TextFocused("System Memory Size: ", "");
+			TextFocused("Video Memory Size: ", "");
+		}
+
+		if (ImGui::TreeNodeEx("Process Usage Info", ImGuiTreeNodeFlags_DefaultOpen)) {
+			TextFocused("Process CPU Usage: ", "");
+			TextFocused("Process GPU Usage: ", "");
+			TextFocused("Process System Memory Usage: ", "");
+			TextFocused("Process Video Memory Usage: ", "");
+		}
+
+		ImPlot::SetNextPlotLimits(totalInjectedTime - 10.0, totalInjectedTime, 0, fpsLimit, ImGuiCond_Always);
+		//ImPlot::BeginPlot("FPS Chart##GIFT", "time", "FPS", ImVec2(-1, 0), ImPlotFlags_None, ImPlotAxisFlags_NoDecorations, ImPlotFlags_None)
+		if (ImPlot::BeginPlot("Process Realtime Performance Metrics"))
+		{
+			ImPlot::PlotLine("FPS" , &m_fpsScrollingBuffer.Data[0].x, &m_fpsScrollingBuffer.Data[0].y, m_fpsScrollingBuffer.Data.size(), m_fpsScrollingBuffer.Offset, 2 * sizeof(float));
+			ImPlot::EndPlot();
+		}
+		//static bool bShowCheckbox = true;
+		//ImGui::Checkbox("Show CheckBox", &bShowCheckbox);
+		ImGui::End();
 		return;
 	}
 
@@ -51,27 +118,14 @@ namespace gpc {
 			m_initialized = true;
 		}
 
-		//Update
-		OnUpdate();
-
-		//Render
-
 		// Start the Dear ImGui frame
 		m_pHUDBackend->NewFrame();
 
-		//Cutomize Overlay layout
-		{
-			ImGui::Begin("GPU Profiler Overlay"); 
-			ImGui::SetWindowSize(ImVec2(400, 800), ImGuiCond_Always);
-			ImGui::Text("Hello World");
-			static bool bShowCheckbox = true;
-			ImGui::Checkbox("Show CheckBox", &bShowCheckbox);
-			auto pFrameInspector = GPCInspectorManager::GetSingleton()->GetFrameInspector();
-			ImGui::End();
-		}
+		//Update
+		OnUpdate();
+
 
 		m_pHUDBackend->RenderDrawData();
-
 		return;
 	}
 
@@ -110,7 +164,7 @@ namespace gpc {
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
+		ImPlot::CreateContext();
 		//Setup Dear ImGui style
 		ImGui::StyleColorsDark();
 		//ImGui::StyleColorsClassic();
@@ -150,6 +204,7 @@ namespace gpc {
 		ImGui_ImplWin32_Shutdown();
 		ImGui_ImplDX12_Shutdown();
 #endif
+		ImPlot::DestroyContext();
 		ImGui::DestroyContext();
 		return;
 	}

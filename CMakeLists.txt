@@ -5,6 +5,11 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_compile_definitions(LIBRARY_EXPORTS)
 
+#dependencies project
+add_subdirectory(./external/cpp-utils)
+add_subdirectory(direct_test)
+add_subdirectory(tools)
+
 file(GLOB GPC_MAIN_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h)
 file(GLOB GPC_HOOK_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/hook/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/hook/*.h)
 file(GLOB GPC_HOOK_DX_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/hook/dx/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/hook/dx/*.h)
@@ -15,9 +20,8 @@ file(GLOB GPC_HOOK_SYS_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/hook/sys/*.cpp ${CMA
 file(GLOB GPC_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/core/*.h)
 file(GLOB GPC_CORE_TRACKER_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/core/tracker/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/core/tracker/*.h)
 file(GLOB GPC_UTILS_IMGUI_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_dx12* ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_win32* ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/im*)
+file(GLOB GPC_UTILS_IMPLOT_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/external/implot/implot*.*)
 file(GLOB GPC_UTILS_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/*.h)
-add_subdirectory(direct_test)
-add_subdirectory(tools)
 
 include_directories(./include)
 include_directories(./src)
@@ -25,6 +29,8 @@ include_directories(./src/hook)
 include_directories(./src/core)
 include_directories(./src/utils)
 include_directories(./external/imgui)
+include_directories(./external/implot)
+include_directories(./external/cpp-utils/include)
 
 link_directories(./libs/detours)
 link_directories(./libs/minhook)
@@ -39,14 +45,15 @@ source_group("core" FILES ${GPC_CORE_SRCS})
 source_group("core/tracker" FILES ${GPC_CORE_TRACKER_SRCS})
 source_group("utils" FILES ${GPC_UTILS_SRCS})
 source_group("utils/imgui" FILES ${GPC_UTILS_IMGUI_SRCS})
-source_group("main" FILES ${GPC_MAIN_SRCS})
+source_group("utils/implot" FILES ${GPC_UTILS_IMPLOT_SRCS})
+source_group("dll_main" FILES ${GPC_MAIN_SRCS})
 
 list(APPEND GPC_HOOK_SRCS ${GPC_HOOK_DX_SRCS} ${GPC_HOOK_CUDA_SRCS} ${GPC_HOOK_VK_SRCS} ${GPC_HOOK_SYS_SRCS} ${GPC_HOOK_OGL_SRCS})
 list(APPEND GPC_CORE_SRCS ${GPC_CORE_TRACKER_SRCS})
-list(APPEND GPC_UTILS_SRCS ${GPC_UTILS_IMGUI_SRCS})
+list(APPEND GPC_UTILS_SRCS ${GPC_UTILS_IMGUI_SRCS} ${GPC_UTILS_IMPLOT_SRCS})
 list(APPEND GPC_MAIN_SRCS ${GPC_HOOK_SRCS} ${GPC_CORE_SRCS} ${GPC_UTILS_SRCS})
 
 add_library(${TARGET_NAME} SHARED ${GPC_MAIN_SRCS})
-target_link_libraries(${TARGET_NAME} dxgi d3d12 detours minhook.x64)
+target_link_libraries(${TARGET_NAME} dxgi d3d12 detours minhook.x64 cpp-utils)
 set_target_properties(${TARGET_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/$<CONFIG>)
 

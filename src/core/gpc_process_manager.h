@@ -10,7 +10,7 @@ namespace gpc {
 
         bool IsValidProcess(std::string processName = "");
         std::string GetProcessNameFromHandle(HANDLE handle);
-        std::string GetProcessName();
+        static std::string GetCurrentProcessName();
 
         int GetProcessHookCount(const char* processName = nullptr) {
             if (!processName) 

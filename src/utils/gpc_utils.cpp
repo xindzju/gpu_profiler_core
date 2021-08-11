@@ -2,9 +2,13 @@
 
 namespace gpc {
 	namespace utils {
-        std::string GetProcessName() {
+        std::string GetCurrentProcessName() {
             char modulePath[1024];
-            GetModuleFileName(nullptr, modulePath, 1024);
+            auto res = GetModuleFileName(nullptr, modulePath, 1024);
+            if (res == 0) {
+                std::cout << "GetProcess Name failed, error code: " << GetLastError() << std::endl;
+                return "System process";
+            }
             std::string processName = fs::path(modulePath).filename().string();
             return processName;
         }

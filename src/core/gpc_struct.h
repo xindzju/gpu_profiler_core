@@ -38,4 +38,16 @@ namespace gpc {
 		GPC_OPTIMIZATION_METHOD_A = 0,
 		GPC_OPTIMIZATION_METHOD_B,
 	};
+
+	struct VidMemInfo {
+		VidMemInfo() {
+			m_D3D12UsageLocal = 0;
+			m_D3D12UsageNonLocal = 0;
+			m_D3D12BudgetLocal = 0;
+			m_D3D12BudgetNonLocal = 0;
+		}
+
+		double m_D3D12UsageLocal, m_D3D12UsageNonLocal;
+		double m_D3D12BudgetLocal, m_D3D12BudgetNonLocal;
+	};
 }

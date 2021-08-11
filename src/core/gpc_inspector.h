@@ -28,32 +28,57 @@ namespace gpc {
 			m_fpsLog << "frametime,fps\n";
 			LARGE_INTEGER freq;
 			QueryPerformanceFrequency(&freq);
-			m_invFreq = 1e6 / freq.QuadPart;
+			m_invFreq = 1.0 / freq.QuadPart;
 			LARGE_INTEGER time;
 			QueryPerformanceCounter(&time);
-			m_frameStartTime = time.QuadPart;
+			m_startInjectedTime = time.QuadPart;
+			m_fpsStartTime = time.QuadPart;
 		}
 		~GPCFPSInspector() {
 			m_fpsLog.close();
 		}
 
 		virtual void StartFrame() {
-			LARGE_INTEGER time;
-			QueryPerformanceCounter(&time);
-			m_frameStartTime = time.QuadPart;
+			LARGE_INTEGER frameStartTime;
+			QueryPerformanceCounter(&frameStartTime);
+			m_frameStartTime = frameStartTime.QuadPart;
 		}
 
 		virtual void EndFrame() {
-			LARGE_INTEGER stop;
-			QueryPerformanceCounter(&stop);
-			auto frametimeMS = (stop.QuadPart - m_frameStartTime) * m_invFreq / 1e6;
-			auto fps = int(1 / frametimeMS);
-			m_fpsLog << frametimeMS << "," << fps << "\n";
+			//update fps every seconds
+			LARGE_INTEGER frameEndTime;
+			QueryPerformanceCounter(&frameEndTime);
+			auto fpsElapsedTime = (frameEndTime.QuadPart - m_fpsStartTime) * m_invFreq;
+			m_fpsFrameCount++;
+			std::cout << "fps elapsed time: " << fpsElapsedTime << "\tfps framecount: " << m_fpsFrameCount << std::endl;
+			if (fpsElapsedTime > 1.0) {
+				auto fps = (double)(1.0 / fpsElapsedTime) * m_fpsFrameCount;
+				m_fpsLog << fpsElapsedTime / m_fpsFrameCount << "," << fps << "\n";
+				m_lastFPS = fps;
+				m_fpsStartTime = frameEndTime.QuadPart;
+				m_fpsFrameCount = 0;
+			}
+			m_totalInjectedTimeNS = (frameEndTime.QuadPart - m_startInjectedTime) * m_invFreq;
 		}
+
+		double GetLastFPS() {
+			return m_lastFPS;
+		}
+
+		double GetTotalInjectedTime() {
+			return m_totalInjectedTimeNS;
+		}
+
 	private:
 		std::ofstream           m_fpsLog;
-		uint64_t                m_frameStartTime = 0;
+		double					m_frameStartTime = 0;
+		double					m_fpsStartTime = 0;
+		double					m_fpsFrameCount = 0;
+		double                  m_fpsUpdateThreshold = 1.0; //update fps every seconds
 		double                  m_invFreq = 1.0;
+		double                  m_lastFPS = 0.0;
+		double					m_totalInjectedTimeNS = 0;
+		double					m_startInjectedTime = 0;
 	};
 
 	struct GPCFrameState {
@@ -113,14 +138,37 @@ namespace gpc {
 
 		}
 
-		DXGI_QUERY_VIDEO_MEMORY_INFO GetVidMemInfo() {
+		//DXGI_QUERY_VIDEO_MEMORY_INFO GetVidMemInfo() {
+		//	auto pAdapter = GPCDXGISwapChainTracker::GetSingleton()->GetDXGIAdapter();
+		//	pAdapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &m_vidMemInfo);
+		//	return m_vidMemInfo;
+		//}
+
+		VidMemInfo GetVidMemInfo() {
 			auto pAdapter = GPCDXGISwapChainTracker::GetSingleton()->GetDXGIAdapter();
-			pAdapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &m_vidMemInfo);
+			DXGI_QUERY_VIDEO_MEMORY_INFO localVidMemInfo = {};
+			DXGI_QUERY_VIDEO_MEMORY_INFO nonLocalVidMemInfo = {};
+			HRESULT hrLocal = pAdapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &localVidMemInfo);
+			HRESULT hrNonLocal = pAdapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &nonLocalVidMemInfo);
+
+			if (SUCCEEDED(hrLocal))
+			{
+				m_vidMemInfo.m_D3D12UsageLocal = localVidMemInfo.CurrentUsage;
+				m_vidMemInfo.m_D3D12BudgetLocal = localVidMemInfo.Budget;
+			}
+
+			if (SUCCEEDED(hrNonLocal))
+			{
+				m_vidMemInfo.m_D3D12UsageNonLocal = nonLocalVidMemInfo.CurrentUsage;
+				m_vidMemInfo.m_D3D12BudgetNonLocal = nonLocalVidMemInfo.Budget;
+			}
+
 			return m_vidMemInfo;
 		}
 
 	private:
-		DXGI_QUERY_VIDEO_MEMORY_INFO m_vidMemInfo;
+		//DXGI_QUERY_VIDEO_MEMORY_INFO m_vidMemInfo;
+		VidMemInfo m_vidMemInfo;
 	};
 
 	class GPCInspectorManager : public GPCSingleton<GPCInspectorManager> {

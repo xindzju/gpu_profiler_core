@@ -1,6 +1,5 @@
 #pragma once
 #include "gpc_defines.h"
-#include "gpc_process_manager.h"
 
 #ifdef _WIN32
 #    ifdef LIBRARY_EXPORTS

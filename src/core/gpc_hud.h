@@ -5,19 +5,71 @@
 #include "core/gpc_common.h"
 #include "core/gpc_d3d12_helper.h"
 
+//imgui
 #include "imgui.h"
+#include "imgui_internal.h"
 #ifndef USE_CUSTOM_BACKEND
 //using default Platform + Renderer backends
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_dx12.h"
 #endif
 
+//implot
+#include "implot.h"
 
 namespace gpc {
 	struct FrameContext
 	{
 		ID3D12CommandAllocator* CommandAllocator;
 		UINT64                  FenceValue;
+	};
+
+	// utility structure for realtime plot
+	struct ScrollingBuffer {
+		int MaxSize;
+		int Offset;
+		double Sum;
+		ImVector<ImVec2> Data;
+		ScrollingBuffer(int max_size = 2000) {
+#if 1
+			MaxSize = max_size;
+			Offset = 0;
+			Sum = 0;
+			Data.reserve(MaxSize);
+#else
+			MaxSize = max_size;
+			Offset = 0;
+			Data.reserve(MaxSize);
+#endif
+		}
+		void AddPoint(float x, float y) {
+#if 1
+			if (Data.size() < MaxSize)
+			{
+				Data.push_back(ImVec2(x, y));
+			}
+			else
+			{
+				Sum -= Data[Offset].y;
+				Data[Offset] = ImVec2(x, y);
+				Offset = (Offset + 1) % MaxSize;
+			}
+			Sum += y;
+#else
+			if (Data.size() < MaxSize)
+				Data.push_back(ImVec2(x, y));
+			else {
+				Data[Offset] = ImVec2(x, y);
+				Offset = (Offset + 1) % MaxSize;
+			}
+#endif
+		}
+		void Erase() {
+			if (Data.size() > 0) {
+				Data.shrink(0);
+				Offset = 0;
+			}
+		}
 	};
 
 	//GPCHUDBackend, including platform backend + render backend
@@ -90,7 +142,8 @@ namespace gpc {
 	private:
 		bool m_initialized = false;
 		GPCD3D12HUDBackend* m_pHUDBackend = nullptr;
-		DXGI_QUERY_VIDEO_MEMORY_INFO m_vidMemInfo;
+		VidMemInfo m_vidMemInfo;
+		ScrollingBuffer m_fpsScrollingBuffer;
 	};
 
 	class GPCHUDManager : public GPCSingleton<GPCHUDManager> {

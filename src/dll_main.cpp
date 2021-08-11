@@ -22,7 +22,7 @@ BOOL WINAPI DllMain(
 	DWORD fdwReason,     // reason for calling function
 	LPVOID lpReserved)  // reserved
 {
-	std::string processName = g_GPUProfilerCore->m_processManager->GetProcessName();
+	std::string processName = g_GPUProfilerCore->m_processManager->GetCurrentProcessName();
 	std::cout << "Dll lock count: " << g_GPCSharedMemory.dllLoadCount++ << "\tcurrent process name: " << processName << std::endl;
 	// Perform actions based on the reason for calling.
 	switch (fdwReason)

@@ -4,7 +4,7 @@
 
 namespace gpc {
 	GPCProcessManager::GPCProcessManager() {
-		std::cout << "Create GPC process manager: " << utils::GetProcessName() << std::endl;
+		std::cout << "Create GPC process manager: " << GetCurrentProcessName() << std::endl;
 		m_blackListFile = g_GPCSharedMemory.blacklistPath;
 		LoadBlackList(m_blackListFile);
 	}
@@ -17,6 +17,8 @@ namespace gpc {
 		bool res = true;
 		if (processName.empty())
 			return false;
+		// convert string to back to lower case
+		std::for_each(processName.begin(), processName.end(), [](char& c) {c = ::tolower(c);});
 		if (m_blackListSet.find(processName) != m_blackListSet.end()) {
 			res = false;
 		}
@@ -56,10 +58,16 @@ namespace gpc {
 		return buffer.substr(0, nameLength);
 	}
 
-	std::string GPCProcessManager::GetProcessName() {
+	std::string GPCProcessManager::GetCurrentProcessName() {
 		char modulePath[1024];
-		GetModuleFileName(nullptr, modulePath, 1024);
+		auto res = GetModuleFileName(nullptr, modulePath, 1024);
+		if (res == 0) {
+			std::cout << "GetProcess Name failed, error code: " << GetLastError() << std::endl;
+			return "System process";
+		}
 		std::string processName = fs::path(modulePath).filename().string();
+		if (processName.find(".exe") == std::string::npos)
+			processName += ".exe";
 		return processName;
 	}
 
@@ -72,6 +80,9 @@ namespace gpc {
 			if (ifs.good()) {
 				std::string processName;
 				while (std::getline(ifs, processName)) {
+					if (processName.find(".exe") == std::string::npos)
+						processName += ".exe";
+					std::for_each(processName.begin(), processName.end(), [](char& c) {c = ::tolower(c); });
 					m_blackListSet.insert(processName);
 				}
 			}

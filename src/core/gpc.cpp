@@ -8,11 +8,11 @@ namespace gpc {
     std::filesystem::path               g_injectorDllPath = "";
 
 	GPUProfilerCore::GPUProfilerCore() {
-		std::cout << "Create GPU Profiler Core: " << utils::GetProcessName() << std::endl;
-		if (m_processManager->GetProcessName().compare("gpu_profiler.exe") == 0)
+		std::cout << "Create GPU Profiler Core: " << GPCProcessManager::GetCurrentProcessName() << std::endl;
+		if (m_processManager->GetCurrentProcessName().compare("gpu_profiler.exe") == 0)
 			InitSharedMemory();
 		m_processManager = new GPCProcessManager();
-		std::string processName = m_processManager->GetProcessName();
+		std::string processName = m_processManager->GetCurrentProcessName();
 		if (m_processManager->IsValidProcess(processName)) {
 			m_hookManager = new GPCHookManager();
 		}

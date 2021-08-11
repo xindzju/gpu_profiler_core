@@ -10,3 +10,9 @@
 [submodule "external/PresentMon"]
 	path = external/PresentMon
 	url = https://github.com/GameTechDev/PresentMon.git
+[submodule "external/implot"]
+	path = external/implot
+	url = https://github.com/epezent/implot.git
+[submodule "external/cpp-utils"]
+	path = external/cpp-utils
+	url = git@github.com:xindzju/cpp-utils.git

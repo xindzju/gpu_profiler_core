@@ -20,6 +20,9 @@
 #else
 #endif
 
+#include "cpp_utils.h"
+using namespace cutils;
+
 namespace fs = std::filesystem;
 template<class T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
@@ -47,7 +50,7 @@ namespace gpc {
     };
 
 	namespace utils {
-		std::string GetProcessName();
+		std::string GetCurrentProcessName();
 		fs::path GetDllPath(const char* dllName);
 
 		bool LoadLib(const char* lib);
